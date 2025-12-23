@@ -1,0 +1,153 @@
+# Azure DevOps Pipeline for Infrastructure Deployment
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - infra/**
+
+variables:
+  azureServiceConnection: 'Azure-ServiceConnection' # Update with your service connection name
+  location: 'eastus'
+  sqlAdminUsername: 'sqladmin'
+
+stages:
+  - stage: DeployDev
+    displayName: 'Deploy to Dev'
+    jobs:
+      - deployment: DeployInfra
+        displayName: 'Deploy Infrastructure to Dev'
+        environment: 'dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: 'Create Resource Group'
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az group create \
+                        --name rg-gamestore-api-dev \
+                        --location $(location)
+
+                - task: AzureCLI@2
+                  displayName: 'Deploy Bicep Template'
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      # Get current user's object ID for Key Vault access
+                      OBJECT_ID=$(az ad signed-in-user show --query id -o tsv)
+                      
+                      # Deploy infrastructure
+                      az deployment group create \
+                        --resource-group rg-gamestore-api-dev \
+                        --template-file infra/environments/dev/gamestore-api/main.bicep \
+                        --parameters location=$(location) \
+                                     sqlAdminUsername=$(sqlAdminUsername) \
+                                     sqlAdminPassword='$(sqlAdminPassword)' \
+                                     keyVaultAccessObjectId=$OBJECT_ID
+
+                - task: AzureCLI@2
+                  displayName: 'Display Outputs'
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az deployment group show \
+                        --resource-group rg-gamestore-api-dev \
+                        --name main \
+                        --query properties.outputs
+
+  - stage: DeployStaging
+    displayName: 'Deploy to Staging'
+    dependsOn: DeployDev
+    condition: succeeded()
+    jobs:
+      - deployment: DeployInfra
+        displayName: 'Deploy Infrastructure to Staging'
+        environment: 'staging'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: 'Create Resource Group'
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az group create \
+                        --name rg-gamestore-api-staging \
+                        --location $(location)
+
+                - task: AzureCLI@2
+                  displayName: 'Deploy Bicep Template'
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      OBJECT_ID=$(az ad signed-in-user show --query id -o tsv)
+                      
+                      az deployment group create \
+                        --resource-group rg-gamestore-api-staging \
+                        --template-file infra/environments/staging/gamestore-api/main.bicep \
+                        --parameters location=$(location) \
+                                     sqlAdminUsername=$(sqlAdminUsername) \
+                                     sqlAdminPassword='$(sqlAdminPasswordStaging)' \
+                                     keyVaultAccessObjectId=$OBJECT_ID
+
+  - stage: DeployProd
+    displayName: 'Deploy to Production'
+    dependsOn: DeployStaging
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployInfra
+        displayName: 'Deploy Infrastructure to Production'
+        environment: 'production' # Requires manual approval in Azure DevOps
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: 'Create Resource Group'
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az group create \
+                        --name rg-gamestore-api-prod \
+                        --location $(location)
+
+                - task: AzureCLI@2
+                  displayName: 'Deploy Bicep Template'
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      OBJECT_ID=$(az ad signed-in-user show --query id -o tsv)
+                      
+                      az deployment group create \
+                        --resource-group rg-gamestore-api-prod \
+                        --template-file infra/environments/prod/gamestore-api/main.bicep \
+                        --parameters location=$(location) \
+                                     sqlAdminUsername=$(sqlAdminUsername) \
+                                     sqlAdminPassword='$(sqlAdminPasswordProd)' \
+                                     keyVaultAccessObjectId=$OBJECT_ID

@@ -1,0 +1,21 @@
+# CODEOWNERS
+
+# Modules - Infrastructure team only
+/modules/ @infra-team
+
+# Policies - Infrastructure team only
+/policies/ @infra-team
+
+# Dev environment - Dev teams can modify (with validation)
+/environments/dev/ @dev-teams @infra-team
+
+# Staging environment - QA + Infra teams
+/environments/staging/ @qa-team @infra-team
+
+# Production environment - Infrastructure team only
+/environments/prod/ @infra-team
+
+# Specific project ownership
+/environments/dev/gamestore-api/ @dev-team-alpha @infra-team
+/environments/staging/gamestore-api/ @dev-team-alpha @qa-team @infra-team
+/environments/prod/gamestore-api/ @infra-team

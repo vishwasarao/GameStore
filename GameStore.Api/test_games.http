@@ -1,0 +1,20 @@
+### Test 1: Verify server is running and responds
+GET http://localhost:5249
+
+### Test 2: Check response status code
+GET http://localhost:5249
+Accept: application/json
+
+### Test 3: Verify response headers
+GET http://localhost:5249
+
+### Test 4: Test with different accept headers
+GET http://localhost:5249
+Accept: text/html
+
+### Test 5: Test connection timeout (if server is down)
+GET http://localhost:5249
+
+### Test 6: Verify CORS headers (if applicable)
+GET http://localhost:5249
+Origin: http://localhost:3000
