@@ -15,7 +15,7 @@ pool:
 
 variables:
   # Azure Configuration
-  azureServiceConnection: 'Azure-ServiceConnection' # Update with your service connection name
+  azureServiceConnection: 'GameStore-Azure-Dev' # Your service connection name
   azureSubscription: '5426beb5-62d6-42e4-978f-4decb7b1bd17'
   resourceGroup: 'rg-gamestore-api-dev'
   location: 'uksouth'
