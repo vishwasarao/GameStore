@@ -1,74 +1,164 @@
+using GameStore.Api.Data;
 using GameStore.Api.Dtos;
+using GameStore.Api.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.Api.Endpoints;
 
 public static class GamesEndpoints
 {
-    private static readonly List<GameDto> games = [
-        new(1, "Street Fighter II", "Fighting", "Classic arcade fighting game", new DateOnly(1991, 2, 1)),
-        new(2, "The Legend of Zelda", "Adventure", "Epic fantasy adventure", new DateOnly(1986, 2, 21)),
-        new(3, "Minecraft", "Sandbox", "Block-based creative game", new DateOnly(2011, 11, 18))
-    ];
+    private const string GetAllGamesCacheKey = "games:all";
+    private const string GetGameByIdCacheKeyPrefix = "games:id:";
+    private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(5);
 
     public static RouteGroupBuilder MapGamesEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/games")
                        .WithParameterValidation();
 
-        group.MapGet("/", () => games);
-
-        group.MapGet("/{id}", (int id) =>
+        // GET /games - Get all games with caching
+        group.MapGet("/", async (GameStoreContext db, ICacheService cache) =>
         {
-            GameDto? game = games.Find(game => game.Id == id);
-            return game is null ? Results.NotFound() : Results.Ok(game);
-        })
-        .WithName("GetGame");
+            // Try to get from cache first
+            var cachedGames = await cache.GetAsync<List<GameDto>>(GetAllGamesCacheKey);
+            if (cachedGames is not null)
+            {
+                return Results.Ok(cachedGames);
+            }
 
-        group.MapPost("/", (CreateGameDto newGame) =>
-        {
-            GameDto game = new(
-                games.Count + 1,
-                newGame.Name,
-                newGame.Genre,
-                newGame.Description,
-                newGame.ReleaseDate
-            );
+            // If not in cache, fetch from database
+            var games = await db.Games
+                .Include(g => g.Genre)
+                .Select(g => new GameDto(
+                    g.Id,
+                    g.Name,
+                    g.Genre!.Name,
+                    g.Description,
+                    g.ReleaseDate
+                ))
+                .ToListAsync();
 
-            games.Add(game);
+            // Store in cache
+            await cache.SetAsync(GetAllGamesCacheKey, games, CacheExpiration);
 
-            return Results.CreatedAtRoute("GetGame", new { id = game.Id }, game);
+            return Results.Ok(games);
         });
 
-        group.MapPut("/{id}", (int id, CreateGameDto updatedGame) =>
+        // GET /games/{id} - Get game by ID with caching
+        group.MapGet("/{id}", async (int id, GameStoreContext db, ICacheService cache) =>
         {
-            var index = games.FindIndex(game => game.Id == id);
+            var cacheKey = $"{GetGameByIdCacheKeyPrefix}{id}";
+            
+            // Try to get from cache first
+            var cachedGame = await cache.GetAsync<GameDto>(cacheKey);
+            if (cachedGame is not null)
+            {
+                return Results.Ok(cachedGame);
+            }
 
-            if (index == -1)
+            // If not in cache, fetch from database
+            var game = await db.Games
+                .Include(g => g.Genre)
+                .Where(g => g.Id == id)
+                .Select(g => new GameDto(
+                    g.Id,
+                    g.Name,
+                    g.Genre!.Name,
+                    g.Description,
+                    g.ReleaseDate
+                ))
+                .FirstOrDefaultAsync();
+
+            if (game is null)
             {
                 return Results.NotFound();
             }
 
-            games[index] = new GameDto(
-                id,
-                updatedGame.Name,
-                updatedGame.Genre,
-                updatedGame.Description,
-                updatedGame.ReleaseDate
+            // Store in cache
+            await cache.SetAsync(cacheKey, game, CacheExpiration);
+
+            return Results.Ok(game);
+        })
+        .WithName("GetGame");
+
+        // POST /games - Create new game and invalidate cache
+        group.MapPost("/", async (CreateGameDto newGame, GameStoreContext db, ICacheService cache) =>
+        {
+            var genre = await db.Genres.FirstOrDefaultAsync(g => g.Name == newGame.Genre);
+            if (genre is null)
+            {
+                return Results.BadRequest($"Genre '{newGame.Genre}' not found");
+            }
+
+            var game = new Entities.Game
+            {
+                Name = newGame.Name,
+                GenreId = genre.Id,
+                Description = newGame.Description,
+                ReleaseDate = newGame.ReleaseDate
+            };
+
+            db.Games.Add(game);
+            await db.SaveChangesAsync();
+
+            // Invalidate cache
+            await cache.RemoveAsync(GetAllGamesCacheKey);
+
+            var gameDto = new GameDto(
+                game.Id,
+                game.Name,
+                newGame.Genre,
+                game.Description,
+                game.ReleaseDate
             );
+
+            return Results.CreatedAtRoute("GetGame", new { id = game.Id }, gameDto);
+        });
+
+        // PUT /games/{id} - Update game and invalidate cache
+        group.MapPut("/{id}", async (int id, CreateGameDto updatedGame, GameStoreContext db, ICacheService cache) =>
+        {
+            var game = await db.Games.FindAsync(id);
+            if (game is null)
+            {
+                return Results.NotFound();
+            }
+
+            var genre = await db.Genres.FirstOrDefaultAsync(g => g.Name == updatedGame.Genre);
+            if (genre is null)
+            {
+                return Results.BadRequest($"Genre '{updatedGame.Genre}' not found");
+            }
+
+            game.Name = updatedGame.Name;
+            game.GenreId = genre.Id;
+            game.Description = updatedGame.Description;
+            game.ReleaseDate = updatedGame.ReleaseDate;
+
+            await db.SaveChangesAsync();
+
+            // Invalidate cache
+            await cache.RemoveAsync(GetAllGamesCacheKey);
+            await cache.RemoveAsync($"{GetGameByIdCacheKeyPrefix}{id}");
 
             return Results.NoContent();
         });
 
-        group.MapDelete("/{id}", (int id) =>
+        // DELETE /games/{id} - Delete game and invalidate cache
+        group.MapDelete("/{id}", async (int id, GameStoreContext db, ICacheService cache) =>
         {
-            var index = games.FindIndex(game => game.Id == id);
-
-            if (index == -1)
+            var game = await db.Games.FindAsync(id);
+            if (game is null)
             {
                 return Results.NotFound();
             }
 
-            games.RemoveAt(index);
+            db.Games.Remove(game);
+            await db.SaveChangesAsync();
+
+            // Invalidate cache
+            await cache.RemoveAsync(GetAllGamesCacheKey);
+            await cache.RemoveAsync($"{GetGameByIdCacheKeyPrefix}{id}");
 
             return Results.NoContent();
         });

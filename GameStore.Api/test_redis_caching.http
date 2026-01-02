@@ -1,0 +1,67 @@
+### Test Redis Caching
+
+# 1. Get all games (first request - cache miss, will query database)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+# 2. Get all games again (second request - cache hit, faster response)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+# 3. Get specific game by ID (first request - cache miss)
+GET http://localhost:5000/games/1
+Accept: application/json
+
+###
+
+# 4. Get specific game by ID (second request - cache hit)
+GET http://localhost:5000/games/1
+Accept: application/json
+
+###
+
+# 5. Create a new game (will invalidate "games:all" cache)
+POST http://localhost:5000/games
+Content-Type: application/json
+
+{
+  "name": "Cyberpunk 2077",
+  "genre": "RPG",
+  "description": "Open world RPG set in Night City",
+  "releaseDate": "2020-12-10"
+}
+
+###
+
+# 6. Get all games again (cache was invalidated, will query database)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+# 7. Update a game (will invalidate both "games:all" and "games:id:1" caches)
+PUT http://localhost:5000/games/1
+Content-Type: application/json
+
+{
+  "name": "Elden Ring - Updated",
+  "genre": "RPG",
+  "description": "Epic fantasy action RPG - Game of the Year Edition",
+  "releaseDate": "2022-02-25"
+}
+
+###
+
+# 8. Delete a game (will invalidate caches)
+DELETE http://localhost:5000/games/3
+
+###
+
+# Pro Tip: Check response times in VS Code
+# - First request (cache miss): ~20-50ms
+# - Subsequent requests (cache hit): ~1-5ms
+# - Look for the time shown in VS Code's HTTP file response

@@ -1,0 +1,146 @@
+### Test Rate Limiting
+
+# Note: Set RequestsPerWindow to 10 in appsettings.Development.json for easier testing
+# {
+#   "RateLimiting": {
+#     "RequestsPerWindow": 10,
+#     "WindowInSeconds": 60
+#   }
+# }
+
+###
+
+### Request 1: Should succeed (9 remaining)
+GET http://localhost:5000/games
+Accept: application/json
+
+# Check response headers:
+# X-RateLimit-Limit: 10
+# X-RateLimit-Remaining: 9
+# X-RateLimit-Reset: <unix-timestamp>
+
+###
+
+### Request 2: Should succeed (8 remaining)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+### Request 3: Should succeed (7 remaining)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+### Request 4: Should succeed (6 remaining)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+### Request 5: Should succeed (5 remaining)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+### Request 6: Should succeed (4 remaining)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+### Request 7: Should succeed (3 remaining)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+### Request 8: Should succeed (2 remaining)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+### Request 9: Should succeed (1 remaining)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+### Request 10: Should succeed (0 remaining)
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+### Request 11: Should FAIL with 429 Too Many Requests
+GET http://localhost:5000/games
+Accept: application/json
+
+# Expected response:
+# HTTP/1.1 429 Too Many Requests
+# X-RateLimit-Limit: 10
+# X-RateLimit-Remaining: 0
+# X-RateLimit-Reset: <unix-timestamp>
+# Retry-After: <seconds>
+#
+# {
+#   "error": "Rate limit exceeded",
+#   "message": "Too many requests. Limit: 10 requests per 60 seconds.",
+#   "retryAfter": 45.2,
+#   "limit": 10,
+#   "windowSeconds": 60
+# }
+
+###
+
+### Request 12: Also should FAIL with 429
+GET http://localhost:5000/games
+Accept: application/json
+
+###
+
+### Test different endpoint (tracked separately)
+GET http://localhost:5000/games/1
+Accept: application/json
+
+# This endpoint has its own counter
+# Should succeed even if /games is rate limited
+
+###
+
+### POST request (also tracked separately)
+POST http://localhost:5000/games
+Content-Type: application/json
+
+{
+  "name": "Rate Limit Test Game",
+  "genre": "Testing",
+  "description": "Testing rate limits",
+  "releaseDate": "2025-12-28"
+}
+
+###
+
+### Test after waiting 60 seconds
+# Wait 60 seconds, then run this:
+GET http://localhost:5000/games
+Accept: application/json
+
+# Should succeed - window has reset
+# X-RateLimit-Remaining: 9
+
+###
+
+### Load test with cURL (run in terminal)
+# for i in {1..15}; do curl -X GET http://localhost:5000/games -w "\nStatus: %{http_code}\n"; done
+
+###
+
+### Tip: Monitor Redis keys in real-time
+# redis-cli KEYS "ratelimit:*"
+# redis-cli ZRANGE "ratelimit:127.0.0.1" 0 -1 WITHSCORES
+# redis-cli ZCARD "ratelimit:127.0.0.1"
+# redis-cli TTL "ratelimit:127.0.0.1"

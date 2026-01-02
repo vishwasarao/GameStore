@@ -13,6 +13,21 @@ param sqlAdminPassword string
 @description('The object ID for Key Vault access (your user or service principal)')
 param keyVaultAccessObjectId string
 
+@description('Publisher email for API Management')
+param apimPublisherEmail string = 'admin@gamestore.com'
+
+@description('Publisher name for API Management')
+param apimPublisherName string = 'GameStore'
+
+@description('JWT issuer URL (e.g., https://login.microsoftonline.com/{tenant-id}/v2.0)')
+param jwtIssuer string = ''
+
+@description('JWT audience (e.g., api://gamestore-api)')
+param jwtAudience string = ''
+
+@description('JWKS URI for JWT validation (e.g., https://login.microsoftonline.com/{tenant-id}/discovery/v2.0/keys)')
+param jwksUri string = ''
+
 // Dev environment specific settings
 var environmentName = 'dev'
 var appName = 'gamestore'
@@ -126,6 +141,28 @@ module acrPasswordSecret '../../../modules/keyVaultSecret.bicep' = {
   }
 }
 
+// Redis Cache
+module redisCache '../../../modules/redisCache.bicep' = {
+  name: 'redisCache-deployment'
+  params: {
+    name: '${resourceNamePrefix}-redis'
+    location: location
+    skuName: 'Basic'
+    skuCapacity: 'C0'
+    tags: commonTags
+  }
+}
+
+// Store Redis connection string in Key Vault
+module redisConnectionStringSecret '../../../modules/keyVaultSecret.bicep' = {
+  name: 'redisConnectionStringSecret-deployment'
+  params: {
+    keyVaultName: keyVault.outputs.name
+    secretName: 'redis-connection-string'
+    secretValue: redisCache.outputs.connectionString
+  }
+}
+
 // Container App Environment
 module containerAppEnv '../../../modules/containerAppEnvironment.bicep' = {
   name: 'containerAppEnv-deployment'
@@ -159,8 +196,48 @@ module containerApp '../../../modules/containerApp.bicep' = {
         name: 'ConnectionStrings__GameStoreDB'
         value: 'Server=tcp:${sqlServer.outputs.fullyQualifiedDomainName},1433;Initial Catalog=GameStoreDB;Persist Security Info=False;User ID=${sqlAdminUsername};Password=${sqlAdminPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
       }
+      {
+        name: 'ConnectionStrings__Redis'
+        value: redisCache.outputs.connectionString
+      }
     ]
     tags: commonTags
+  }
+}
+
+// API Management
+module apiManagement '../../../modules/apiManagement.bicep' = {
+  name: 'apiManagement-deployment'
+  params: {
+    name: '${resourceNamePrefix}-apim'
+    location: location
+    skuName: 'Developer'
+    skuCapacity: 1
+    publisherEmail: apimPublisherEmail
+    publisherName: apimPublisherName
+    appInsightsInstrumentationKey: appInsights.outputs.instrumentationKey
+    enableAppInsights: true
+    tags: commonTags
+  }
+}
+
+// API Management - GameStore API Configuration
+module gamestoreApi '../../../modules/apiManagementApi.bicep' = {
+  name: 'gamestoreApi-deployment'
+  params: {
+    apimServiceName: apiManagement.outputs.name
+    apiName: 'gamestore-api'
+    apiDisplayName: 'GameStore API'
+    apiDescription: 'API for managing game catalog'
+    apiPath: 'api'
+    serviceUrl: 'https://${containerApp.outputs.fqdn}'
+    enableJwtValidation: !empty(jwtIssuer)
+    jwtIssuer: jwtIssuer
+    jwtAudience: jwtAudience
+    jwtJwksUri: jwksUri
+    enableRateLimiting: true
+    rateLimitCalls: 1000  // Dev: Higher limit for testing
+    rateLimitRenewalPeriod: 60
   }
 }
 
@@ -172,3 +249,8 @@ output sqlDatabaseName string = 'GameStoreDB'
 output keyVaultName string = keyVault.outputs.name
 output containerRegistryName string = containerRegistry.outputs.name
 output containerRegistryLoginServer string = containerRegistry.outputs.loginServer
+output redisCacheName string = redisCache.outputs.name
+output redisCacheHostName string = redisCache.outputs.hostName
+output apimGatewayUrl string = apiManagement.outputs.gatewayUrl
+output apimPortalUrl string = apiManagement.outputs.portalUrl
+output apimName string = apiManagement.outputs.name

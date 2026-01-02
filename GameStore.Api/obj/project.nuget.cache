@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "N6zIszcn3sk=",
+  "dgSpecHash": "ER2biGCe2gA=",
   "success": true,
   "projectFilePath": "/Users/vishwasrao/repos/GameStore/GameStore.Api/GameStore.Api.csproj",
   "expectedPackageFiles": [
@@ -39,6 +39,8 @@
     "/Users/vishwasrao/.nuget/packages/minimalapis.extensions/0.11.0/minimalapis.extensions.0.11.0.nupkg.sha512",
     "/Users/vishwasrao/.nuget/packages/minivalidation/0.8.0/minivalidation.0.8.0.nupkg.sha512",
     "/Users/vishwasrao/.nuget/packages/mono.texttemplating/3.0.0/mono.texttemplating.3.0.0.nupkg.sha512",
+    "/Users/vishwasrao/.nuget/packages/pipelines.sockets.unofficial/2.2.8/pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
+    "/Users/vishwasrao/.nuget/packages/stackexchange.redis/2.8.16/stackexchange.redis.2.8.16.nupkg.sha512",
     "/Users/vishwasrao/.nuget/packages/system.clientmodel/1.0.0/system.clientmodel.1.0.0.nupkg.sha512",
     "/Users/vishwasrao/.nuget/packages/system.codedom/6.0.0/system.codedom.6.0.0.nupkg.sha512",
     "/Users/vishwasrao/.nuget/packages/system.composition/7.0.0/system.composition.7.0.0.nupkg.sha512",
