@@ -1747,6 +1747,335 @@ GET /products (all products)
 <li>PIM doesn't write back to Merret</li>
 </ul>
 <hr>
+<h2 id="54-background-worker-implementation-details">5.4 Background Worker Implementation Details</h2>
+<h3 id="hosting-platform-azure-container-apps--app-service">Hosting Platform: Azure Container Apps / App Service</h3>
+<p><strong>Technology Stack</strong>:</p>
+<ul>
+<li>.NET 8 Worker Service (<code>BackgroundService</code>)</li>
+<li>Docker containerized</li>
+<li>Platform: Azure Container Apps (recommended) or Azure App Service</li>
+</ul>
+<p><strong>Why Container Apps vs App Service</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Container Apps</th>
+<th>App Service</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cost</strong></td>
+<td>~$30-50/month (pay for usage)</td>
+<td>~$55-200/month (always on)</td>
+</tr>
+<tr>
+<td><strong>Scale to Zero</strong></td>
+<td>✅ Yes (if needed)</td>
+<td>❌ No</td>
+</tr>
+<tr>
+<td><strong>Container Native</strong></td>
+<td>✅ Built for it</td>
+<td>⚠️ Supported</td>
+</tr>
+<tr>
+<td><strong>Maturity</strong></td>
+<td>3+ years (GA: May 2022)</td>
+<td>15+ years</td>
+</tr>
+<tr>
+<td><strong>Cold Starts</strong></td>
+<td>⚠️ Yes (if scale to 0)</td>
+<td>✅ No (Always On)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendation for 2023-24 timeframe</strong>:</p>
+<ul>
+<li>Azure App Service (more mature, widely adopted)</li>
+<li>Container Apps (if bleeding-edge adoption is credible)</li>
+<li><strong>Note</strong>: The application code is identical for both platforms</li>
+</ul>
+<h3 id="worker-architecture-pattern">Worker Architecture Pattern</h3>
+<pre class="hljs"><code><div><span class="hljs-comment">// PriceBatchWorker.cs</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">PriceBatchWorker</span> : <span class="hljs-title">BackgroundService</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> ILogger&lt;PriceBatchWorker&gt; _logger;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> IMerretApiClient _merretClient;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> BlobContainerClient _blobContainer;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> ServiceBusClient _serviceBusClient;
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> TimeSpan _timerInterval = TimeSpan.FromMinutes(<span class="hljs-number">5</span>);
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span> BATCH_SIZE = <span class="hljs-number">1000</span>;
+    
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">override</span> <span class="hljs-keyword">async</span> Task <span class="hljs-title">ExecuteAsync</span>(<span class="hljs-params">CancellationToken stoppingToken</span>)</span>
+    {
+        _logger.LogInformation(<span class="hljs-string">"Worker starting at: {time}"</span>, DateTimeOffset.UtcNow);
+        
+        <span class="hljs-keyword">try</span>
+        {
+            <span class="hljs-comment">// Continuous loop with cancellation support</span>
+            <span class="hljs-keyword">while</span> (!stoppingToken.IsCancellationRequested)
+            {
+                <span class="hljs-keyword">try</span>
+                {
+                    <span class="hljs-keyword">await</span> ProcessPriceBatchAsync(stoppingToken);
+                }
+                <span class="hljs-keyword">catch</span> (Exception ex)
+                {
+                    _logger.LogError(ex, <span class="hljs-string">"Error processing batch"</span>);
+                }
+                
+                <span class="hljs-comment">// Delay respects cancellation token</span>
+                <span class="hljs-keyword">await</span> Task.Delay(_timerInterval, stoppingToken);
+            }
+        }
+        <span class="hljs-keyword">catch</span> (TaskCanceledException) <span class="hljs-keyword">when</span> (stoppingToken.IsCancellationRequested)
+        {
+            <span class="hljs-comment">// Expected during graceful shutdown - not an error</span>
+            _logger.LogInformation(<span class="hljs-string">"Worker stopping gracefully"</span>);
+        }
+        
+        _logger.LogInformation(<span class="hljs-string">"Worker stopped at: {time}"</span>, DateTimeOffset.UtcNow);
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">async</span> Task <span class="hljs-title">ProcessPriceBatchAsync</span>(<span class="hljs-params">CancellationToken cancellationToken</span>)</span>
+    {
+        <span class="hljs-comment">// 1. Query database for updated prices</span>
+        <span class="hljs-keyword">var</span> lastProcessedTime = <span class="hljs-keyword">await</span> GetLastProcessedTimestampAsync();
+        <span class="hljs-keyword">var</span> prices = <span class="hljs-keyword">await</span> _merretClient.GetUpdatedPricesAsync(
+            lastProcessedTime, 
+            BATCH_SIZE, 
+            cancellationToken);
+        
+        <span class="hljs-keyword">if</span> (prices.Count == <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span>;
+        
+        <span class="hljs-comment">// 2. Write batch to Blob Storage</span>
+        <span class="hljs-keyword">var</span> batchId = Guid.NewGuid().ToString();
+        <span class="hljs-keyword">var</span> blobName = <span class="hljs-string">$"batch-<span class="hljs-subst">{DateTime.UtcNow:yyyy-MM-dd-HHmmss}</span>-<span class="hljs-subst">{batchId}</span>.json"</span>;
+        <span class="hljs-keyword">await</span> WriteBatchToBlobAsync(blobName, prices, cancellationToken);
+        
+        <span class="hljs-comment">// 3. Send metadata to Service Bus</span>
+        <span class="hljs-keyword">var</span> metadata = <span class="hljs-keyword">new</span> BatchMetadata
+        {
+            BatchId = batchId,
+            BlobName = blobName,
+            RecordCount = prices.Count,
+            TargetSystems = <span class="hljs-keyword">new</span>[] { <span class="hljs-string">"Enactor"</span>, <span class="hljs-string">"Ecom"</span> }
+        };
+        <span class="hljs-keyword">await</span> SendBatchMetadataAsync(metadata, cancellationToken);
+        
+        <span class="hljs-comment">// 4. Update last processed timestamp</span>
+        <span class="hljs-keyword">await</span> SaveLastProcessedTimestampAsync(DateTimeOffset.UtcNow);
+    }
+}
+</div></code></pre>
+<h3 id="graceful-shutdown--cancellation-handling">Graceful Shutdown &amp; Cancellation Handling</h3>
+<p><strong>How Cancellation Works</strong>:</p>
+<pre class="hljs"><code><div>Azure/Host sends shutdown signal (SIGTERM)
+    ↓
+.NET Generic Host receives signal
+    ↓
+Host cancels the CancellationToken
+    ↓
+stoppingToken.IsCancellationRequested = true
+    ↓
+Worker checks flag in while loop
+    ↓
+Loop exits (doesn't start new iteration)
+    ↓
+ExecuteAsync completes
+    ↓
+Container stops gracefully
+</div></code></pre>
+<p><strong>Key Design Decisions</strong>:</p>
+<ol>
+<li>
+<p><strong>Check cancellation BEFORE starting new work</strong></p>
+<pre class="hljs"><code><div><span class="hljs-keyword">while</span> (!stoppingToken.IsCancellationRequested)  <span class="hljs-comment">// ← Gate prevents new work</span>
+{
+    <span class="hljs-keyword">await</span> ProcessBatchAsync(stoppingToken);
+}
+</div></code></pre>
+</li>
+<li>
+<p><strong>Pass cancellation token to all async operations</strong></p>
+<pre class="hljs"><code><div><span class="hljs-keyword">await</span> _httpClient.GetAsync(url, cancellationToken);  <span class="hljs-comment">// Respects cancellation</span>
+<span class="hljs-keyword">await</span> Task.Delay(interval, cancellationToken);       <span class="hljs-comment">// Respects cancellation</span>
+<span class="hljs-keyword">await</span> _blobClient.UploadAsync(data, cancellationToken); <span class="hljs-comment">// Respects cancellation</span>
+</div></code></pre>
+</li>
+<li>
+<p><strong>Configure graceful shutdown timeout</strong></p>
+<pre class="hljs"><code><div><span class="hljs-comment">// Program.cs</span>
+services.Configure&lt;HostOptions&gt;(options =&gt;
+{
+    options.ShutdownTimeout = TimeSpan.FromSeconds(<span class="hljs-number">30</span>);  <span class="hljs-comment">// Grace period</span>
+});
+</div></code></pre>
+</li>
+</ol>
+<p><strong>Graceful Shutdown Timeline</strong>:</p>
+<pre class="hljs"><code><div>Time 0s:   Shutdown signal received
+           → CancellationToken cancelled
+           → &quot;Please stop gracefully&quot;
+           
+Time 0-30s: Grace period
+           → Worker finishes current batch processing
+           → Cleans up resources
+           → Exits loop naturally
+           
+Time 30s:  Timeout reached
+           → If still running: FORCEFULLY KILLED (SIGKILL)
+           → Risk of data inconsistency
+</div></code></pre>
+<p><strong>Why This Pattern Matters</strong>:</p>
+<ul>
+<li>✅ <strong>No duplicate processing</strong>: Worker doesn't start new batch during shutdown</li>
+<li>✅ <strong>Data consistency</strong>: Current batch completes successfully</li>
+<li>✅ <strong>Clean deployments</strong>: Zero-downtime deployments possible</li>
+<li>✅ <strong>Resource cleanup</strong>: Connections, files properly closed</li>
+</ul>
+<h3 id="scaling-strategy-why-workers-are-singletons">Scaling Strategy: Why Workers Are Singletons</h3>
+<p><strong>Configuration</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-attr">scale:</span>
+  <span class="hljs-attr">minReplicas:</span> <span class="hljs-number">1</span>  <span class="hljs-comment"># Always running</span>
+  <span class="hljs-attr">maxReplicas:</span> <span class="hljs-number">1</span>  <span class="hljs-comment"># SINGLETON - no horizontal scaling</span>
+</div></code></pre>
+<p><strong>Why NOT Scale to Multiple Instances?</strong></p>
+<p>❌ <strong>Problem with Multiple Instances</strong>:</p>
+<pre class="hljs"><code><div>Instance 1: Queries DB → Gets records 1-1000
+Instance 2: Queries DB → Gets records 1-1000 (DUPLICATE!)
+Instance 3: Queries DB → Gets records 1-1000 (DUPLICATE!)
+
+Issues:
+- All instances execute SAME database query
+- Same records processed multiple times
+- Race conditions on &quot;last processed timestamp&quot;
+- 3x database load with 0x performance benefit
+- Wasted CPU, memory, storage
+</div></code></pre>
+<p>✅ <strong>Correct Pattern: Single Worker + Auto-Scaling Functions</strong>:</p>
+<pre class="hljs"><code><div>Worker (1 instance):
+  → Queries DB once (1000 records)
+  → Creates batch file
+  → Sends metadata to Service Bus
+  
+Azure Functions (Auto-scale):
+  → Instance 1: Processes batch for Enactor
+  → Instance 2: Processes batch for Ecom
+  → Instance 3: Processes next batch
+  (Functions scale based on queue depth!)
+</div></code></pre>
+<p><strong>The Bottleneck</strong>:</p>
+<ul>
+<li>❌ NOT CPU (worker mostly sleeps)</li>
+<li>❌ NOT Memory (lightweight processing)</li>
+<li>✅ <strong>Database Query</strong> (all instances would run same query)</li>
+</ul>
+<p><strong>When to Scale Workers</strong>:</p>
+<ul>
+<li>✅ <strong>Partitioned data</strong>: Different workers handle different regions/customers</li>
+<li>✅ <strong>CPU-bound work</strong>: Image processing, encryption, compression</li>
+<li>✅ <strong>Independent data sources</strong>: Each worker queries different database</li>
+</ul>
+<p><strong>When NOT to Scale Workers</strong>:</p>
+<ul>
+<li>❌ <strong>Single data source</strong>: All instances query same database</li>
+<li>❌ <strong>Sequential processing</strong>: Work must be done in order</li>
+<li>❌ <strong>Shared state</strong>: Coordination required between instances</li>
+</ul>
+<h3 id="deployment-configuration">Deployment Configuration</h3>
+<p><strong>Container Apps (Bicep)</strong>:</p>
+<pre class="hljs"><code><div>resource priceWorker 'Microsoft.App/containerApps@2023-05-01' = {
+  name: 'price-worker'
+  properties: {
+    configuration: {
+      activeRevisionsMode: 'Single'
+      secrets: [
+        { name: 'storage-connection', value: storageConnectionString }
+        { name: 'servicebus-connection', value: serviceBusConnectionString }
+      ]
+    }
+    template: {
+      scale: {
+        minReplicas: 1
+        maxReplicas: 1  // Singleton
+      }
+      containers: [{
+        name: 'price-worker'
+        image: 'myregistry.azurecr.io/price-worker:latest'
+        resources: {
+          cpu: 0.5
+          memory: '1Gi'
+        }
+        env: [
+          { name: 'AzureStorage__ConnectionString', secretRef: 'storage-connection' }
+          { name: 'ServiceBus__ConnectionString', secretRef: 'servicebus-connection' }
+        ]
+      }]
+    }
+  }
+}
+</div></code></pre>
+<p><strong>App Service (Bicep)</strong>:</p>
+<pre class="hljs"><code><div>resource priceWorker 'Microsoft.Web/sites@2022-03-01' = {
+  name: 'price-worker'
+  properties: {
+    serverFarmId: appServicePlan.id
+    siteConfig: {
+      linuxFxVersion: 'DOCKER|myregistry.azurecr.io/price-worker:latest'
+      alwaysOn: true  // Keep worker running continuously
+      appSettings: [
+        { name: 'AzureStorage__ConnectionString', value: storageConnectionString }
+        { name: 'ServiceBus__ConnectionString', value: serviceBusConnectionString }
+      ]
+    }
+  }
+}
+</div></code></pre>
+<p><strong>Note</strong>: The application code is 100% identical for both platforms - only the infrastructure configuration differs.</p>
+<h3 id="monitoring--observability">Monitoring &amp; Observability</h3>
+<p><strong>Key Metrics to Track</strong>:</p>
+<pre class="hljs"><code><div>Worker Health:
+  - Worker uptime
+  - Last successful batch processing time
+  - Exceptions in worker loop
+  - Graceful shutdown success rate
+
+Batch Metrics:
+  - Batches created per day
+  - Average batch size
+  - Time to create batch
+  - Database query duration
+
+Processing Metrics:
+  - Service Bus queue depth
+  - Function execution count
+  - Success/failure rate per batch
+</div></code></pre>
+<p><strong>Application Insights Queries</strong>:</p>
+<pre class="hljs"><code><div>// Worker execution times
+traces
+| where customDimensions.CategoryName == &quot;PriceBatchWorker&quot;
+| where message contains &quot;completed&quot;
+| extend duration = todouble(customDimensions.duration)
+| summarize avg(duration), max(duration) by bin(timestamp, 1h)
+
+// Graceful shutdowns
+traces
+| where message contains &quot;Worker stopping gracefully&quot;
+| summarize count() by bin(timestamp, 1d)
+
+// Batch sizes
+traces
+| where message contains &quot;Found&quot; and message contains &quot;price updates&quot;
+| extend count = extract(@&quot;Found (\d+) price&quot;, 1, message)
+| summarize avg(todouble(count)), max(todouble(count)) by bin(timestamp, 1h)
+</div></code></pre>
+<hr>
 <h2 id="6-azure-resources-architecture">6. Azure Resources Architecture</h2>
 <pre><code class="language-mermaid"><div class="mermaid">graph TB
     subgraph "Compute - Container Apps/App Services"
