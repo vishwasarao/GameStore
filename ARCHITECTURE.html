@@ -1,0 +1,3275 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ARCHITECTURE.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="integration-hub-architecture---merret-core-system">Integration Hub Architecture - Merret Core System</h1>
+<p><strong>Date:</strong> January 2026<br>
+<strong>Version:</strong> 1.0</p>
+<hr>
+<h2 id="executive-summary">Executive Summary</h2>
+<p>This document outlines the architecture for an integration hub that connects multiple external systems (Ecom, Farfetch, Enactor, Hospitality, PIM) with the core Merret inventory system. The solution uses Azure services with a microservices architecture to handle:</p>
+<ul>
+<li><strong>Orders</strong> from Ecom (push) and Farfetch (pull)</li>
+<li><strong>Transactions</strong> from Enactor (SFTP), Farfetch (SFTP), and Hospitality (pull)</li>
+<li><strong>Prices</strong> distribution to Enactor and Ecom</li>
+<li><strong>Products</strong> bidirectional sync with Merret</li>
+<li><strong>Product Enhancements</strong> distribution to PIM (scheduled daily)</li>
+</ul>
+<hr>
+<h2 id="high-level-architecture">High-Level Architecture</h2>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart TB
+    subgraph EXT["🌐 EXTERNAL SYSTEMS"]
+        direction LR
+        ECOM["Ecom<br/>(E-commerce)"]
+        FARFETCH["Farfetch<br/>(Marketplace)"]
+        ENACTOR["Enactor<br/>(Retail)"]
+        HOSP["Hospitality<br/>(POS)"]
+        PIM["PIM<br/>(Product Info)"]
+    end
+
+    subgraph GATEWAY["🚪 API GATEWAY & INGESTION"]
+        direction TB
+        APIM["API Management<br/><i>Azure APIM</i>"]
+        SFTP["SFTP Servers<br/><i>Enactor, Farfetch</i>"]
+        ADF["Data Factory<br/><i>Azure ADF</i><br/>ETL Pipeline"]
+    end
+
+    subgraph APIS["🔷 WEB APIs (Container Apps)"]
+        direction TB
+        ORDERAPI["Order API<br/><i>ASP.NET Web API</i><br/>Scale: 2-10"]
+        TXAPI["Transaction API<br/><i>ASP.NET Web API</i><br/>Scale: 1-5"]
+        PRODAPI["Product API<br/><i>ASP.NET Web API</i><br/>Scale: 1-5"]
+    end
+
+    subgraph WORKERS["⚙️ BACKGROUND WORKERS (Container Apps)"]
+        direction TB
+        PRICEWORKER["Price Batch Worker<br/><i>Background Service</i><br/>Timer: Every 5 min<br/>Batches of 1000"]
+        PRODWORKER["Product Batch Worker<br/><i>Background Service</i><br/>Timer: Daily at 2 AM<br/>Batches of 5000"]
+    end
+
+    subgraph FUNCTIONS["⚡ AZURE FUNCTIONS (Serverless)"]
+        direction TB
+        FARFETCHPOLLER["Farfetch Order Poller<br/><i>Timer Function</i><br/>Every 5 min"]
+        HOSPPOLLER["Hospitality TX Poller<br/><i>Timer Function</i><br/>Every 5 min"]
+        TXTRANSFORM["TX Transformer<br/><i>Service Bus Function</i><br/>Event-driven"]
+        PRICESENDER["Price Batch Sender<br/><i>Service Bus Function</i><br/>Processes batches<br/>Sends files/API"]
+        PRODSENDER["Product Batch Sender<br/><i>Service Bus Function</i><br/>Processes batches<br/>Sends files/API"]
+    end
+
+    subgraph MESSAGING["📨 MESSAGING & EVENTS"]
+        direction TB
+        BLOBTX["Blob Storage<br/><i>Transaction Files</i>"]
+        BLOBOUT["Blob Storage<br/><i>Outbound Batches</i><br/>Prices, Products"]
+        EG["Event Grid<br/><i>Blob Events</i>"]
+        SBQ["Service Bus Queue<br/><i>transaction-queue</i>"]
+        SBT1["Service Bus Queue<br/><i>price-batches</i><br/>Batch metadata"]
+        SBT2["Service Bus Queue<br/><i>product-batches</i><br/>Batch metadata"]
+    end
+
+    subgraph CORE["💾 CORE SYSTEMS & DATABASES"]
+        direction TB
+        MERRETDB[("Merret Database<br/><i>3rd Party Inventory DB</i><br/><b>CORE SYSTEM</b><br/>SQL Server<br/>Direct queries from APIs")]
+        COSMOS[("Cosmos DB<br/><i>NoSQL Database</i><br/>Transaction Reporting")]
+    end
+
+    subgraph SECURITY["🔒 SECURITY & MONITORING"]
+        direction LR
+        KV["Key Vault<br/><i>Secrets</i>"]
+        AI["Application Insights<br/><i>APM & Logs</i>"]
+    end
+
+    %% Inbound Order Flows (BLUE)
+    ECOM -->|"1. POST Orders"| APIM
+    APIM --> ORDERAPI
+    FARFETCH -.->|"2. Pull Orders"| FARFETCHPOLLER
+    FARFETCHPOLLER -->|"POST"| ORDERAPI
+    ORDERAPI ==>|"Direct SQL Query"| MERRETDB
+
+    %% Inbound Transaction Flows (ORANGE)
+    ENACTOR & FARFETCH -->|"3. Upload Files"| SFTP
+    SFTP --> ADF
+    ADF --> BLOBTX
+    BLOBTX --> EG
+    EG --> SBQ
+    SBQ --> TXTRANSFORM
+    TXTRANSFORM -->|"POST"| TXAPI
+    
+    HOSP -.->|"4. Pull TXs"| HOSPPOLLER
+    HOSPPOLLER -->|"POST"| TXAPI
+    TXAPI ==>|"Direct SQL Query"| MERRETDB
+    TXAPI -->|"Save"| COSMOS
+
+    %% Bidirectional Product Flow (GREEN)
+    APIM <-->|"5. GET/POST"| PRODAPI
+    PRODAPI <===>|"Direct SQL Query"| MERRETDB
+
+    %% Outbound Price Flow with BATCHING (PURPLE)
+    PRICEWORKER -.->|"6a. Read Prices<br/>Every 5 min<br/>SQL Query"| MERRETDB
+    PRICEWORKER -->|"6b. Write batch file"| BLOBOUT
+    PRICEWORKER -->|"6c. Send batch metadata"| SBT1
+    SBT1 --> PRICESENDER
+    PRICESENDER -->|"6d. Read batch file"| BLOBOUT
+    PRICESENDER -->|"6e. Upload to SFTP"| ENACTOR
+    PRICESENDER -->|"6f. Upload to SFTP"| ECOM
+
+    %% Outbound Product Enhancement Flow with BATCHING (TEAL)
+    PRODWORKER -.->|"7a. Read Products<br/>Daily 2 AM<br/>SQL Query"| MERRETDB
+    PRODWORKER -->|"7b. Write batch file"| BLOBOUT
+    PRODWORKER -->|"7c. Send batch metadata"| SBT2
+    SBT2 --> PRODSENDER
+    PRODSENDER -->|"7d. Read batch file"| BLOBOUT
+    PRODSENDER -->|"7e. Upload to SFTP"| PIM
+
+    %% Security & Monitoring (GRAY)
+    APIS & WORKERS & FUNCTIONS -.->|"Telemetry"| AI
+    APIS & WORKERS & FUNCTIONS -.->|"Get Secrets"| KV
+
+    %% Styling
+    style MERRETDB fill:#ff6b6b,stroke:#333,stroke-width:4px
+    style APIM fill:#4ecdc4,stroke:#333,stroke-width:2px
+    style COSMOS fill:#f38181,stroke:#333,stroke-width:2px
+    style EXT fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style CORE fill:#ffebee,stroke:#c62828,stroke-width:2px
+    style APIS fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style WORKERS fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style FUNCTIONS fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style MESSAGING fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    style BLOBOUT fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+
+    %% Link Styles - Color Coded & Thick
+    %% Order Flows (BLUE - #2196F3)
+    linkStyle 0 stroke:#2196F3,stroke-width:4px
+    linkStyle 1 stroke:#2196F3,stroke-width:4px
+    linkStyle 2 stroke:#2196F3,stroke-width:3px,stroke-dasharray:5
+    linkStyle 3 stroke:#2196F3,stroke-width:4px
+    linkStyle 4 stroke:#2196F3,stroke-width:4px
+    linkStyle 5 stroke:#2196F3,stroke-width:5px
+    
+    %% Transaction Flows (ORANGE - #FF9800)
+    linkStyle 6 stroke:#FF9800,stroke-width:4px
+    linkStyle 7 stroke:#FF9800,stroke-width:4px
+    linkStyle 8 stroke:#FF9800,stroke-width:4px
+    linkStyle 9 stroke:#FF9800,stroke-width:4px
+    linkStyle 10 stroke:#FF9800,stroke-width:4px
+    linkStyle 11 stroke:#FF9800,stroke-width:4px
+    linkStyle 12 stroke:#FF9800,stroke-width:4px
+    linkStyle 13 stroke:#FF9800,stroke-width:3px,stroke-dasharray:5
+    linkStyle 14 stroke:#FF9800,stroke-width:4px
+    linkStyle 15 stroke:#FF9800,stroke-width:4px
+    linkStyle 16 stroke:#FF9800,stroke-width:5px
+    linkStyle 17 stroke:#FF9800,stroke-width:4px
+    
+    %% Product Flows (GREEN - #4CAF50)
+    linkStyle 18 stroke:#4CAF50,stroke-width:4px
+    linkStyle 19 stroke:#4CAF50,stroke-width:4px
+    linkStyle 20 stroke:#4CAF50,stroke-width:5px
+    
+    %% Price Flows with Batching (PURPLE - #9C27B0)
+    linkStyle 21 stroke:#9C27B0,stroke-width:3px,stroke-dasharray:5
+    linkStyle 22 stroke:#9C27B0,stroke-width:3px,stroke-dasharray:5
+    linkStyle 23 stroke:#9C27B0,stroke-width:4px
+    linkStyle 24 stroke:#9C27B0,stroke-width:4px
+    linkStyle 25 stroke:#9C27B0,stroke-width:4px
+    linkStyle 26 stroke:#9C27B0,stroke-width:3px,stroke-dasharray:5
+    linkStyle 27 stroke:#9C27B0,stroke-width:4px
+    linkStyle 28 stroke:#9C27B0,stroke-width:4px
+    
+    %% Product Enhancement Flows with Batching (TEAL - #009688)
+    linkStyle 29 stroke:#009688,stroke-width:3px,stroke-dasharray:5
+    linkStyle 30 stroke:#009688,stroke-width:3px,stroke-dasharray:5
+    linkStyle 31 stroke:#009688,stroke-width:4px
+    linkStyle 32 stroke:#009688,stroke-width:4px
+    linkStyle 33 stroke:#009688,stroke-width:4px
+    linkStyle 34 stroke:#009688,stroke-width:3px,stroke-dasharray:5
+    linkStyle 35 stroke:#009688,stroke-width:4px
+    
+    %% Monitoring/Security (GRAY - #757575)
+    linkStyle 36 stroke:#757575,stroke-width:2px,stroke-dasharray:3
+    linkStyle 37 stroke:#757575,stroke-width:2px,stroke-dasharray:3
+</div></code></pre>
+<hr>
+<h2 id="scalability--batching-strategy">Scalability &amp; Batching Strategy</h2>
+<h3 id="why-batching-is-essential">Why Batching is Essential</h3>
+<p><strong>Problem</strong>: Sending thousands/millions of individual messages through Service Bus → Azure Functions is:</p>
+<ul>
+<li>❌ Expensive (high function execution costs)</li>
+<li>❌ Slow (network overhead per message)</li>
+<li>❌ Inefficient (Service Bus message limits: 256KB standard, 1MB premium)</li>
+<li>❌ Hard to manage (tracking individual message failures)</li>
+</ul>
+<p><strong>Solution</strong>: Batch processing pattern</p>
+<h3 id="batch-processing-architecture">Batch Processing Architecture</h3>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart LR
+    subgraph "Step 1: Batch Creation"
+        WORKER[Background Worker<br/>Reads from Merret DB]
+        MERRETDB[(Merret DB)]
+        BLOBFILE[Blob Storage<br/>batch-2026-01-08-001.json<br/>5000 records]
+        
+        WORKER -.->|Query 5000 prices| MERRETDB
+        WORKER -->|Write batch file| BLOBFILE
+    end
+    
+    subgraph "Step 2: Notification"
+        SB[Service Bus Queue<br/>Batch Metadata Only]
+        MSG["{<br/>  batchId: '001',<br/>  blobUrl: '...',<br/>  recordCount: 5000,<br/>  targetSystem: 'Enactor'<br/>}"]
+        
+        WORKER -->|Send metadata| SB
+        SB --> MSG
+    end
+    
+    subgraph "Step 3: Processing"
+        FUNC[Azure Function<br/>Batch Processor]
+        TARGET[Target System<br/>Enactor/Ecom/PIM]
+        
+        MSG --> FUNC
+        FUNC -.->|Read batch| BLOBFILE
+        FUNC -->|Send file or<br/>chunked API calls| TARGET
+    end
+    
+    style BLOBFILE fill:#fff9c4
+    style FUNC fill:#f3e5f5
+</div></code></pre>
+<h3 id="batch-sizes--performance">Batch Sizes &amp; Performance</h3>
+<table>
+<thead>
+<tr>
+<th>Data Type</th>
+<th>Records per Batch</th>
+<th>File Size</th>
+<th>Frequency</th>
+<th>Processing Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Prices</strong></td>
+<td>1,000-5,000</td>
+<td>~1-5 MB</td>
+<td>Every 5 min</td>
+<td>10-30 seconds</td>
+</tr>
+<tr>
+<td><strong>Products</strong></td>
+<td>5,000-10,000</td>
+<td>~5-10 MB</td>
+<td>Daily</td>
+<td>1-3 minutes</td>
+</tr>
+<tr>
+<td><strong>Transactions</strong></td>
+<td>1,000</td>
+<td>~500KB-2MB</td>
+<td>Per file</td>
+<td>5-15 seconds</td>
+</tr>
+</tbody>
+</table>
+<h3 id="delivery-methods">Delivery Methods</h3>
+<h4 id="option-1-file-based-delivery-recommended-for-large-batches">Option 1: File-Based Delivery (Recommended for large batches)</h4>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant Worker as Batch Worker
+    participant MerretDB as Merret DB
+    participant Blob as Blob Storage
+    participant SB as Service Bus
+    participant Func as Azure Function
+    participant SFTP as Target SFTP
+    participant API as Target API
+
+    Worker->>MerretDB: Query updated records (delta)
+    MerretDB-->>Worker: 5000 records
+    Worker->>Worker: Transform to target format
+    Worker->>Blob: Write CSV/JSON/XML file
+    Worker->>SB: Send batch metadata
+    
+    SB->>Func: Trigger with metadata
+    Func->>Blob: Read batch file
+    
+    alt Target supports file upload
+        Func->>SFTP: Upload file via SFTP
+    else Target supports API
+        Func->>API: POST file (multipart/form-data)
+    else Target needs API calls
+        loop For each chunk of 100
+            Func->>API: POST chunk of records
+        end
+    end
+</div></code></pre>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Target system has SFTP</li>
+<li>Target system accepts file uploads (multipart)</li>
+<li>Large batches (&gt;1000 records)</li>
+<li>Target system prefers batch files</li>
+</ul>
+<p><strong>File formats</strong>:</p>
+<ul>
+<li><strong>CSV</strong>: Enactor (simple, compact)</li>
+<li><strong>JSON</strong>: PIM, Ecom (structured, easy to parse)</li>
+<li><strong>XML</strong>: Legacy systems</li>
+</ul>
+<h4 id="option-2-chunked-api-calls-for-systems-requiring-individual-api-calls">Option 2: Chunked API Calls (For systems requiring individual API calls)</h4>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart TB
+    FUNC[Azure Function]
+    BLOB[Blob Storage<br/>5000 records]
+    API[Target API]
+    
+    FUNC -->|Read batch| BLOB
+    FUNC -->|Chunk into 100| CHUNK1[Chunk 1:<br/>Records 1-100]
+    FUNC -->|Chunk into 100| CHUNK2[Chunk 2:<br/>Records 101-200]
+    FUNC -->|Chunk into 100| CHUNK3[Chunk 3:<br/>Records 201-300]
+    FUNC -->|...| DOTS[...]
+    
+    CHUNK1 -->|POST /api/bulk| API
+    CHUNK2 -->|POST /api/bulk| API
+    CHUNK3 -->|POST /api/bulk| API
+    DOTS -->|POST /api/bulk| API
+    
+    style FUNC fill:#f3e5f5
+</div></code></pre>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Target system requires API calls</li>
+<li>Target system has bulk API endpoint</li>
+<li>Need real-time error handling per chunk</li>
+</ul>
+<p><strong>Implementation</strong>:</p>
+<pre class="hljs"><code><div>For batch of 5000 records:
+  1. Read from blob
+  2. Split into chunks of 100
+  3. Send each chunk via HTTP POST
+  4. Retry failed chunks
+  5. Log results
+</div></code></pre>
+<h3 id="scalability-benefits">Scalability Benefits</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Without Batching</th>
+<th>With Batching</th>
+<th>Improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Messages/day</strong></td>
+<td>1,000,000</td>
+<td>200 (5000/batch)</td>
+<td>99.98% reduction</td>
+</tr>
+<tr>
+<td><strong>Function executions</strong></td>
+<td>1,000,000</td>
+<td>200</td>
+<td>99.98% reduction</td>
+</tr>
+<tr>
+<td><strong>Cost</strong></td>
+<td>$500-1000/month</td>
+<td>$10-20/month</td>
+<td>98% savings</td>
+</tr>
+<tr>
+<td><strong>Processing time</strong></td>
+<td>10-20 hours</td>
+<td>30-60 minutes</td>
+<td>95% faster</td>
+</tr>
+<tr>
+<td><strong>Failure tracking</strong></td>
+<td>1M messages</td>
+<td>200 batches</td>
+<td>Much easier</td>
+</tr>
+</tbody>
+</table>
+<h3 id="error-handling-for-batches">Error Handling for Batches</h3>
+<pre><code class="language-mermaid"><div class="mermaid">stateDiagram-v2
+    [*] --> BatchCreated
+    BatchCreated --> InProgress: Function picks up
+    InProgress --> PartialSuccess: Some chunks fail
+    InProgress --> Success: All chunks succeed
+    InProgress --> Failed: Critical error
+    
+    PartialSuccess --> Retry: Retry failed chunks
+    Failed --> DeadLetter: Max retries exceeded
+    Retry --> Success: Retry succeeds
+    Retry --> DeadLetter: Retry fails
+    Success --> [*]
+    DeadLetter --> ManualReview
+</div></code></pre>
+<p><strong>Error tracking per batch</strong>:</p>
+<ul>
+<li>Batch ID for correlation</li>
+<li>Track successful/failed chunks</li>
+<li>Retry only failed chunks</li>
+<li>Dead letter queue for manual review</li>
+<li>Detailed logging in Application Insights</li>
+</ul>
+<h3 id="monitoring-batch-processing">Monitoring Batch Processing</h3>
+<p><strong>Key Metrics</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-attr">Batch Metrics:</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Batches</span> <span class="hljs-string">created</span> <span class="hljs-string">per</span> <span class="hljs-string">day</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Average</span> <span class="hljs-string">batch</span> <span class="hljs-string">size</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Batch</span> <span class="hljs-string">processing</span> <span class="hljs-string">duration</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Success</span> <span class="hljs-string">rate</span> <span class="hljs-string">per</span> <span class="hljs-string">batch</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Failed</span> <span class="hljs-string">chunks</span> <span class="hljs-string">per</span> <span class="hljs-string">batch</span>
+
+<span class="hljs-attr">Performance Metrics:</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Records</span> <span class="hljs-string">processed</span> <span class="hljs-string">per</span> <span class="hljs-string">second</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Time</span> <span class="hljs-string">to</span> <span class="hljs-string">process</span> <span class="hljs-string">batch</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Blob</span> <span class="hljs-string">read/write</span> <span class="hljs-string">latency</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Target</span> <span class="hljs-string">API</span> <span class="hljs-string">response</span> <span class="hljs-string">time</span>
+</div></code></pre>
+<hr>
+<h2 id="data-access-pattern-direct-implementation-in-services">Data Access Pattern: Direct Implementation in Services</h2>
+<h3 id="architecture-decision">Architecture Decision</h3>
+<p><strong>Your Approach: Mixed Data Access</strong> ✅</p>
+<p>Each API directly implements data access in the service layer because you have <strong>multiple integration methods</strong> with Merret:</p>
+<ul>
+<li>✅ <strong>Direct DB writes</strong> (SQL queries) for some operations</li>
+<li>✅ <strong>File drops</strong> to Merret's SFTP/folder for other operations</li>
+<li>✅ No repository abstraction needed (adds unnecessary complexity)</li>
+</ul>
+<p><strong>Why No Repository Pattern</strong>:</p>
+<ul>
+<li>Different operations use different methods (DB vs file)</li>
+<li>Repository pattern assumes consistent data access</li>
+<li>Simpler to maintain without the abstraction layer</li>
+<li>Each service knows exactly what it needs to do</li>
+</ul>
+<h3 id="project-structure-for-each-api">Project Structure for Each API</h3>
+<pre class="hljs"><code><div>OrderApi/
+├── Controllers/
+│   └── OrdersController.cs
+├── Services/
+│   ├── OrderService.cs (business logic + data access)
+│   └── MerretFileService.cs (file drop helper)
+├── Models/
+│   ├── Order.cs
+│   └── OrderRequest.cs
+└── Program.cs
+</div></code></pre>
+<h3 id="implementation-pattern">Implementation Pattern</h3>
+<h4 id="service-with-direct-db-access-orderservicecs">Service with Direct DB Access (OrderService.cs)</h4>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">OrderService</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> IConfiguration _configuration;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> ILogger&lt;OrderService&gt; _logger;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> IDbConnection _merretConnection;
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">OrderService</span>(<span class="hljs-params">
+        IConfiguration configuration,
+        ILogger&lt;OrderService&gt; logger</span>)</span>
+    {
+        _configuration = configuration;
+        _logger = logger;
+        
+        <span class="hljs-comment">// Direct connection to Merret DB</span>
+        _merretConnection = <span class="hljs-keyword">new</span> SqlConnection(
+            configuration[<span class="hljs-string">"Merret:ConnectionString"</span>]
+        );
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> Task&lt;OrderResult&gt; <span class="hljs-title">CreateOrderAsync</span>(<span class="hljs-params">OrderRequest request</span>)</span>
+    {
+        <span class="hljs-comment">// Validate</span>
+        <span class="hljs-keyword">if</span> (!IsValidOrder(request))
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ValidationException(<span class="hljs-string">"Invalid order"</span>);
+        
+        <span class="hljs-comment">// Direct SQL insert</span>
+        <span class="hljs-keyword">const</span> <span class="hljs-keyword">string</span> sql = <span class="hljs-string">@"
+            INSERT INTO Orders (OrderId, CustomerId, OrderDate, TotalAmount, Status)
+            VALUES (@OrderId, @CustomerId, @OrderDate, @TotalAmount, 'Created');
+            
+            SELECT CAST(SCOPE_IDENTITY() as int);"</span>;
+        
+        <span class="hljs-keyword">try</span>
+        {
+            <span class="hljs-keyword">var</span> orderId = <span class="hljs-keyword">await</span> _merretConnection.ExecuteScalarAsync&lt;<span class="hljs-keyword">int</span>&gt;(sql, <span class="hljs-keyword">new</span>
+            {
+                OrderId = Guid.NewGuid().ToString(),
+                CustomerId = request.CustomerId,
+                OrderDate = DateTime.UtcNow,
+                TotalAmount = request.TotalAmount
+            });
+            
+            _logger.LogInformation(<span class="hljs-string">"Created order {OrderId}"</span>, orderId);
+            
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> OrderResult { OrderId = orderId, Status = <span class="hljs-string">"Success"</span> };
+        }
+        <span class="hljs-keyword">catch</span> (SqlException ex)
+        {
+            _logger.LogError(ex, <span class="hljs-string">"Failed to create order"</span>);
+            <span class="hljs-keyword">throw</span>;
+        }
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> Task&lt;Order&gt; <span class="hljs-title">GetOrderAsync</span>(<span class="hljs-params"><span class="hljs-keyword">string</span> orderId</span>)</span>
+    {
+        <span class="hljs-keyword">const</span> <span class="hljs-keyword">string</span> sql = <span class="hljs-string">"SELECT * FROM Orders WHERE OrderId = @OrderId"</span>;
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> _merretConnection.QuerySingleOrDefaultAsync&lt;Order&gt;(
+            sql, <span class="hljs-keyword">new</span> { OrderId = orderId });
+    }
+}
+</div></code></pre>
+<h4 id="service-with-file-drop-transactionservicecs">Service with File Drop (TransactionService.cs)</h4>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TransactionService</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> IConfiguration _configuration;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> ILogger&lt;TransactionService&gt; _logger;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> BlobServiceClient _blobClient;
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TransactionService</span>(<span class="hljs-params">
+        IConfiguration configuration,
+        ILogger&lt;TransactionService&gt; logger,
+        BlobServiceClient blobClient</span>)</span>
+    {
+        _configuration = configuration;
+        _logger = logger;
+        _blobClient = blobClient;
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> Task&lt;TransactionResult&gt; <span class="hljs-title">CreateTransactionAsync</span>(<span class="hljs-params">TransactionRequest request</span>)</span>
+    {
+        <span class="hljs-comment">// Validate</span>
+        <span class="hljs-keyword">if</span> (!IsValidTransaction(request))
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ValidationException(<span class="hljs-string">"Invalid transaction"</span>);
+        
+        <span class="hljs-comment">// Option 1: Write to DB directly (for real-time transactions)</span>
+        <span class="hljs-keyword">if</span> (request.RequiresImmediateProcessing)
+        {
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> WriteTransactionToDbAsync(request);
+        }
+        
+        <span class="hljs-comment">// Option 2: Drop file to Merret's inbound folder (for batch processing)</span>
+        <span class="hljs-keyword">else</span>
+        {
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> DropTransactionFileAsync(request);
+        }
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">async</span> Task&lt;TransactionResult&gt; <span class="hljs-title">WriteTransactionToDbAsync</span>(<span class="hljs-params">TransactionRequest request</span>)</span>
+    {
+        <span class="hljs-keyword">using</span> <span class="hljs-keyword">var</span> connection = <span class="hljs-keyword">new</span> SqlConnection(
+            _configuration[<span class="hljs-string">"Merret:ConnectionString"</span>]);
+        
+        <span class="hljs-keyword">const</span> <span class="hljs-keyword">string</span> sql = <span class="hljs-string">@"
+            INSERT INTO Transactions 
+            (TransactionId, Amount, Date, Type, CustomerId, Status)
+            VALUES (@Id, @Amount, @Date, @Type, @CustomerId, 'Pending')"</span>;
+        
+        <span class="hljs-keyword">await</span> connection.ExecuteAsync(sql, <span class="hljs-keyword">new</span>
+        {
+            Id = request.TransactionId,
+            Amount = request.Amount,
+            Date = request.Date,
+            Type = request.Type,
+            CustomerId = request.CustomerId
+        });
+        
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> TransactionResult { TransactionId = request.TransactionId };
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">async</span> Task&lt;TransactionResult&gt; <span class="hljs-title">DropTransactionFileAsync</span>(<span class="hljs-params">TransactionRequest request</span>)</span>
+    {
+        <span class="hljs-comment">// Create CSV file content</span>
+        <span class="hljs-keyword">var</span> csv = <span class="hljs-string">$"<span class="hljs-subst">{request.TransactionId}</span>,<span class="hljs-subst">{request.Amount}</span>,<span class="hljs-subst">{request.Date:yyyy-MM-dd}</span>,"</span> +
+                  <span class="hljs-string">$"<span class="hljs-subst">{request.Type}</span>,<span class="hljs-subst">{request.CustomerId}</span>\n"</span>;
+        
+        <span class="hljs-comment">// Drop to Merret's inbound blob container</span>
+        <span class="hljs-keyword">var</span> containerClient = _blobClient.GetBlobContainerClient(<span class="hljs-string">"merret-inbound"</span>);
+        <span class="hljs-keyword">var</span> blobName = <span class="hljs-string">$"transactions/tx_<span class="hljs-subst">{DateTime.UtcNow:yyyyMMddHHmmss}</span>_<span class="hljs-subst">{request.TransactionId}</span>.csv"</span>;
+        <span class="hljs-keyword">var</span> blobClient = containerClient.GetBlobClient(blobName);
+        
+        <span class="hljs-keyword">using</span> <span class="hljs-keyword">var</span> stream = <span class="hljs-keyword">new</span> MemoryStream(Encoding.UTF8.GetBytes(csv));
+        <span class="hljs-keyword">await</span> blobClient.UploadAsync(stream, overwrite: <span class="hljs-literal">false</span>);
+        
+        _logger.LogInformation(<span class="hljs-string">"Dropped transaction file {FileName}"</span>, blobName);
+        
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> TransactionResult 
+        { 
+            TransactionId = request.TransactionId,
+            Status = <span class="hljs-string">"FileDropped"</span>
+        };
+    }
+}
+</div></code></pre>
+<h4 id="helper-service-for-file-operations-merretfileservicecs">Helper Service for File Operations (MerretFileService.cs)</h4>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">MerretFileService</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> BlobServiceClient _blobClient;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> ILogger&lt;MerretFileService&gt; _logger;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-keyword">string</span> _merretInboundContainer;
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">MerretFileService</span>(<span class="hljs-params">
+        BlobServiceClient blobClient,
+        IConfiguration configuration,
+        ILogger&lt;MerretFileService&gt; logger</span>)</span>
+    {
+        _blobClient = blobClient;
+        _logger = logger;
+        _merretInboundContainer = configuration[<span class="hljs-string">"Merret:InboundContainer"</span>];
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> Task&lt;<span class="hljs-keyword">string</span>&gt; <span class="hljs-title">DropCsvFileAsync</span>(<span class="hljs-params"><span class="hljs-keyword">string</span> folderName, List&lt;Dictionary&lt;<span class="hljs-keyword">string</span>, <span class="hljs-keyword">object</span>&gt;&gt; records</span>)</span>
+    {
+        <span class="hljs-comment">// Generate CSV</span>
+        <span class="hljs-keyword">var</span> csv = GenerateCsv(records);
+        
+        <span class="hljs-comment">// Upload to blob</span>
+        <span class="hljs-keyword">var</span> fileName = <span class="hljs-string">$"<span class="hljs-subst">{folderName}</span>/import_<span class="hljs-subst">{DateTime.UtcNow:yyyyMMddHHmmss}</span>.csv"</span>;
+        <span class="hljs-keyword">var</span> containerClient = _blobClient.GetBlobContainerClient(_merretInboundContainer);
+        <span class="hljs-keyword">var</span> blobClient = containerClient.GetBlobClient(fileName);
+        
+        <span class="hljs-keyword">using</span> <span class="hljs-keyword">var</span> stream = <span class="hljs-keyword">new</span> MemoryStream(Encoding.UTF8.GetBytes(csv));
+        <span class="hljs-keyword">await</span> blobClient.UploadAsync(stream);
+        
+        _logger.LogInformation(<span class="hljs-string">"Dropped file {FileName} with {Count} records"</span>, 
+            fileName, records.Count);
+        
+        <span class="hljs-keyword">return</span> fileName;
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> Task&lt;<span class="hljs-keyword">string</span>&gt; <span class="hljs-title">DropJsonFileAsync</span>(<span class="hljs-params"><span class="hljs-keyword">string</span> folderName, <span class="hljs-keyword">object</span> data</span>)</span>
+    {
+        <span class="hljs-keyword">var</span> json = JsonSerializer.Serialize(data, <span class="hljs-keyword">new</span> JsonSerializerOptions 
+        { 
+            WriteIndented = <span class="hljs-literal">true</span> 
+        });
+        
+        <span class="hljs-keyword">var</span> fileName = <span class="hljs-string">$"<span class="hljs-subst">{folderName}</span>/import_<span class="hljs-subst">{DateTime.UtcNow:yyyyMMddHHmmss}</span>.json"</span>;
+        <span class="hljs-keyword">var</span> containerClient = _blobClient.GetBlobContainerClient(_merretInboundContainer);
+        <span class="hljs-keyword">var</span> blobClient = containerClient.GetBlobClient(fileName);
+        
+        <span class="hljs-keyword">using</span> <span class="hljs-keyword">var</span> stream = <span class="hljs-keyword">new</span> MemoryStream(Encoding.UTF8.GetBytes(json));
+        <span class="hljs-keyword">await</span> blobClient.UploadAsync(stream);
+        
+        <span class="hljs-keyword">return</span> fileName;
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">string</span> <span class="hljs-title">GenerateCsv</span>(<span class="hljs-params">List&lt;Dictionary&lt;<span class="hljs-keyword">string</span>, <span class="hljs-keyword">object</span>&gt;&gt; records</span>)</span>
+    {
+        <span class="hljs-keyword">if</span> (records.Count == <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-keyword">string</span>.Empty;
+        
+        <span class="hljs-keyword">var</span> sb = <span class="hljs-keyword">new</span> StringBuilder();
+        
+        <span class="hljs-comment">// Header</span>
+        <span class="hljs-keyword">var</span> headers = <span class="hljs-keyword">string</span>.Join(<span class="hljs-string">","</span>, records[<span class="hljs-number">0</span>].Keys);
+        sb.AppendLine(headers);
+        
+        <span class="hljs-comment">// Rows</span>
+        <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> record <span class="hljs-keyword">in</span> records)
+        {
+            <span class="hljs-keyword">var</span> values = <span class="hljs-keyword">string</span>.Join(<span class="hljs-string">","</span>, record.Values.Select(v =&gt; 
+                v?.ToString()?.Replace(<span class="hljs-string">","</span>, <span class="hljs-string">"\\,"</span>) ?? <span class="hljs-string">""</span>));
+            sb.AppendLine(values);
+        }
+        
+        <span class="hljs-keyword">return</span> sb.ToString();
+    }
+}
+</div></code></pre>
+<h3 id="dependency-injection-programcs">Dependency Injection (Program.cs)</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">var</span> builder = WebApplication.CreateBuilder(args);
+
+<span class="hljs-comment">// Configure Key Vault</span>
+builder.Configuration.AddAzureKeyVault(
+    <span class="hljs-keyword">new</span> Uri(builder.Configuration[<span class="hljs-string">"KeyVault:VaultUri"</span>]),
+    <span class="hljs-keyword">new</span> DefaultAzureCredential());
+
+<span class="hljs-comment">// Register Blob client for file drops</span>
+builder.Services.AddSingleton(sp =&gt;
+{
+    <span class="hljs-keyword">var</span> connectionString = builder.Configuration[<span class="hljs-string">"Merret:BlobConnectionString"</span>];
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> BlobServiceClient(connectionString);
+});
+
+<span class="hljs-comment">// Register services (no repository layer)</span>
+builder.Services.AddScoped&lt;OrderService&gt;();
+builder.Services.AddScoped&lt;TransactionService&gt;();
+builder.Services.AddScoped&lt;ProductService&gt;();
+builder.Services.AddScoped&lt;MerretFileService&gt;();
+
+<span class="hljs-comment">// Register Dapper type handlers if needed</span>
+SqlMapper.AddTypeHandler(<span class="hljs-keyword">new</span> JsonTypeHandler());
+
+builder.Services.AddControllers();
+
+<span class="hljs-keyword">var</span> app = builder.Build();
+app.MapControllers();
+app.Run();
+</div></code></pre>
+<h3 id="configuration">Configuration</h3>
+<p><strong>appsettings.json</strong>:</p>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"Merret"</span>: {
+    <span class="hljs-attr">"ConnectionString"</span>: <span class="hljs-string">"Server=merret-db;Database=Merret;..."</span>,
+    <span class="hljs-attr">"BlobConnectionString"</span>: <span class="hljs-string">"DefaultEndpointsProtocol=https;..."</span>,
+    <span class="hljs-attr">"InboundContainer"</span>: <span class="hljs-string">"merret-inbound"</span>,
+    <span class="hljs-attr">"InboundFolder"</span>: {
+      <span class="hljs-attr">"Orders"</span>: <span class="hljs-string">"orders"</span>,
+      <span class="hljs-attr">"Transactions"</span>: <span class="hljs-string">"transactions"</span>,
+      <span class="hljs-attr">"Products"</span>: <span class="hljs-string">"products"</span>
+    }
+  }
+}
+</div></code></pre>
+<p><strong>Azure Key Vault Secrets</strong>:</p>
+<pre class="hljs"><code><div>Merret--ConnectionString
+Merret--BlobConnectionString
+</div></code></pre>
+<h3 id="when-to-use-db-vs-file-drop">When to Use DB vs File Drop</h3>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Method</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Real-time orders</strong></td>
+<td>Direct DB</td>
+<td>Immediate processing needed</td>
+</tr>
+<tr>
+<td><strong>Batch orders</strong></td>
+<td>File drop</td>
+<td>Merret processes in batches</td>
+</tr>
+<tr>
+<td><strong>Individual transactions</strong></td>
+<td>Direct DB</td>
+<td>Real-time inventory update</td>
+</tr>
+<tr>
+<td><strong>Bulk transactions</strong></td>
+<td>File drop</td>
+<td>Merret's batch import process</td>
+</tr>
+<tr>
+<td><strong>Product lookups</strong></td>
+<td>Direct DB</td>
+<td>Need immediate response</td>
+</tr>
+<tr>
+<td><strong>Product bulk updates</strong></td>
+<td>File drop</td>
+<td>Large volume, async processing</td>
+</tr>
+<tr>
+<td><strong>Price updates to Merret</strong></td>
+<td>File drop</td>
+<td>Merret imports from files</td>
+</tr>
+<tr>
+<td><strong>Stock adjustments</strong></td>
+<td>Direct DB</td>
+<td>Real-time inventory sync</td>
+</tr>
+</tbody>
+</table>
+<h3 id="merret-integration-patterns">Merret Integration Patterns</h3>
+<h4 id="pattern-1-direct-db-write">Pattern 1: Direct DB Write</h4>
+<pre class="hljs"><code><div>Your API → SQL INSERT/UPDATE → Merret Database → Immediate
+</div></code></pre>
+<p><strong>Use when</strong>:</p>
+<ul>
+<li>Need immediate confirmation</li>
+<li>Single record operations</li>
+<li>Real-time inventory checks required</li>
+</ul>
+<h4 id="pattern-2-file-drop">Pattern 2: File Drop</h4>
+<pre class="hljs"><code><div>Your API → Generate CSV/JSON → Blob Storage → Merret picks up file → Processes in batch
+</div></code></pre>
+<p><strong>Use when</strong>:</p>
+<ul>
+<li>Bulk operations (&gt;100 records)</li>
+<li>Merret has scheduled import jobs</li>
+<li>Don't need immediate confirmation</li>
+<li>Merret provides file-based integration</li>
+</ul>
+<h4 id="pattern-3-hybrid-your-case">Pattern 3: Hybrid (Your Case)</h4>
+<pre class="hljs"><code><div>Your API decides based on:
+- Record count
+- Urgency
+- Business rules
+- Merret's capabilities
+
+Then either:
+- Writes to DB directly, OR
+- Drops file to blob
+</div></code></pre>
+<h3 id="example-hybrid-transaction-processing">Example: Hybrid Transaction Processing</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TransactionService</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span> BATCH_THRESHOLD = <span class="hljs-number">50</span>;
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> Task&lt;TransactionResult&gt; <span class="hljs-title">ProcessTransactionsAsync</span>(<span class="hljs-params">
+        List&lt;Transaction&gt; transactions</span>)</span>
+    {
+        <span class="hljs-comment">// Decide based on volume</span>
+        <span class="hljs-keyword">if</span> (transactions.Count &lt; BATCH_THRESHOLD)
+        {
+            <span class="hljs-comment">// Few transactions - write to DB directly</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> InsertTransactionsToDbAsync(transactions);
+        }
+        <span class="hljs-keyword">else</span>
+        {
+            <span class="hljs-comment">// Many transactions - drop file for batch import</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> DropTransactionFileAsync(transactions);
+        }
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">async</span> Task&lt;TransactionResult&gt; <span class="hljs-title">InsertTransactionsToDbAsync</span>(<span class="hljs-params">
+        List&lt;Transaction&gt; transactions</span>)</span>
+    {
+        <span class="hljs-keyword">using</span> <span class="hljs-keyword">var</span> connection = <span class="hljs-keyword">new</span> SqlConnection(_connectionString);
+        
+        <span class="hljs-keyword">const</span> <span class="hljs-keyword">string</span> sql = <span class="hljs-string">@"
+            INSERT INTO Transactions (TransactionId, Amount, Date, Type)
+            VALUES (@TransactionId, @Amount, @Date, @Type)"</span>;
+        
+        <span class="hljs-comment">// Use Dapper's Execute with IEnumerable</span>
+        <span class="hljs-keyword">await</span> connection.ExecuteAsync(sql, transactions);
+        
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> TransactionResult 
+        { 
+            Count = transactions.Count,
+            Method = <span class="hljs-string">"DirectDB"</span> 
+        };
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">async</span> Task&lt;TransactionResult&gt; <span class="hljs-title">DropTransactionFileAsync</span>(<span class="hljs-params">
+        List&lt;Transaction&gt; transactions</span>)</span>
+    {
+        <span class="hljs-keyword">var</span> fileName = <span class="hljs-keyword">await</span> _fileService.DropCsvFileAsync(
+            <span class="hljs-string">"transactions"</span>,
+            transactions.Select(t =&gt; <span class="hljs-keyword">new</span> Dictionary&lt;<span class="hljs-keyword">string</span>, <span class="hljs-keyword">object</span>&gt;
+            {
+                [<span class="hljs-meta"><span class="hljs-meta-string">"TransactionId"</span></span>] = t.TransactionId,
+                [<span class="hljs-meta"><span class="hljs-meta-string">"Amount"</span></span>] = t.Amount,
+                [<span class="hljs-meta"><span class="hljs-meta-string">"Date"</span></span>] = t.Date,
+                [<span class="hljs-meta"><span class="hljs-meta-string">"Type"</span></span>] = t.Type
+            }).ToList()
+        );
+        
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> TransactionResult 
+        { 
+            Count = transactions.Count,
+            Method = <span class="hljs-string">"FileDrop"</span>,
+            FileName = fileName
+        };
+    }
+}
+</div></code></pre>
+<h3 id="benefits-of-direct-service-implementation">Benefits of Direct Service Implementation</h3>
+<p>✅ <strong>Simpler</strong>: No unnecessary abstraction<br>
+✅ <strong>Flexible</strong>: Easy to switch between DB and file<br>
+✅ <strong>Clear</strong>: Each service knows exactly what it does<br>
+✅ <strong>Maintainable</strong>: Less layers to update<br>
+✅ <strong>Testable</strong>: Mock the database connection or blob client</p>
+<h3 id="testing-without-repository-pattern">Testing Without Repository Pattern</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">OrderServiceTests</span>
+{
+    [<span class="hljs-meta">Fact</span>]
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> Task <span class="hljs-title">CreateOrder_WritesToDatabase_ReturnsOrderId</span>(<span class="hljs-params"></span>)</span>
+    {
+        <span class="hljs-comment">// Arrange</span>
+        <span class="hljs-keyword">var</span> configuration = <span class="hljs-keyword">new</span> ConfigurationBuilder()
+            .AddInMemoryCollection(<span class="hljs-keyword">new</span> Dictionary&lt;<span class="hljs-keyword">string</span>, <span class="hljs-keyword">string</span>&gt;
+            {
+                [<span class="hljs-meta"><span class="hljs-meta-string">"Merret:ConnectionString"</span></span>] = <span class="hljs-string">"test-connection"</span>
+            })
+            .Build();
+        
+        <span class="hljs-keyword">var</span> logger = Mock.Of&lt;ILogger&lt;OrderService&gt;&gt;();
+        <span class="hljs-keyword">var</span> service = <span class="hljs-keyword">new</span> OrderService(configuration, logger);
+        
+        <span class="hljs-comment">// Act</span>
+        <span class="hljs-keyword">var</span> result = <span class="hljs-keyword">await</span> service.CreateOrderAsync(<span class="hljs-keyword">new</span> OrderRequest 
+        { 
+            CustomerId = <span class="hljs-string">"CUST123"</span>,
+            TotalAmount = <span class="hljs-number">99.99</span>m
+        });
+        
+        <span class="hljs-comment">// Assert</span>
+        Assert.NotNull(result.OrderId);
+    }
+}
+
+<span class="hljs-comment">// For integration tests, use Testcontainers with real SQL Server</span>
+</div></code></pre>
+<h3 id="summary">Summary</h3>
+<p><strong>Your simplified approach</strong>:</p>
+<ul>
+<li>✅ No repository pattern needed</li>
+<li>✅ Direct implementation in services</li>
+<li>✅ Mix of DB writes and file drops</li>
+<li>✅ Each service decides the best method</li>
+<li>✅ Simpler, clearer, easier to maintain</li>
+</ul>
+<p><strong>What you need</strong>:</p>
+<ul>
+<li>Service layer with direct data access</li>
+<li>Dapper for SQL queries</li>
+<li>BlobServiceClient for file drops</li>
+<li>Helper service for file generation (optional)</li>
+<li>Configuration for both DB and blob connections</li>
+</ul>
+<hr>
+<h2 id="1-order-flow-architecture">1. Order Flow Architecture</h2>
+<h3 id="11-order-flow-diagram">1.1 Order Flow Diagram</h3>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant ECOM as Ecom System
+    participant FARFETCH as Farfetch API
+    participant POLLER as Farfetch Order Poller<br/>(Azure Function)
+    participant APIM as API Management
+    participant ORDERAPI as Order API<br/>(Container App)
+    participant MERRET as Merret API
+
+    Note over ECOM,MERRET: Direct Push from Ecom
+    ECOM->>APIM: POST /api/orders
+    APIM->>ORDERAPI: Forward request
+    ORDERAPI->>ORDERAPI: Validate order
+    ORDERAPI->>MERRET: POST order
+    MERRET-->>ORDERAPI: Order created
+    ORDERAPI-->>APIM: 200 OK
+    APIM-->>ECOM: Response
+
+    Note over FARFETCH,MERRET: Pull & Transform from Farfetch
+    loop Every 5 minutes
+        POLLER->>POLLER: Check last poll time
+        POLLER->>FARFETCH: GET /orders?since=timestamp
+        FARFETCH-->>POLLER: Farfetch orders
+        POLLER->>POLLER: Transform format
+        POLLER->>ORDERAPI: POST /api/orders
+        ORDERAPI->>MERRET: POST order
+        MERRET-->>ORDERAPI: Order created
+        ORDERAPI-->>POLLER: 200 OK
+        POLLER->>POLLER: Update poll time
+    end
+
+    Note over FARFETCH,MERRET: Farfetch Order Cancellation
+    FARFETCH->>APIM: Request cancellation
+    APIM->>ORDERAPI: POST /api/orders/{id}/cancel
+    ORDERAPI->>ORDERAPI: Validate Farfetch order
+    ORDERAPI->>MERRET: Cancel order
+    MERRET-->>ORDERAPI: Cancelled
+    ORDERAPI-->>APIM: 200 OK
+</div></code></pre>
+<h3 id="12-order-api-endpoints">1.2 Order API Endpoints</h3>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Source</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/api/orders</code></td>
+<td>POST</td>
+<td>Ecom, Farfetch (via poller)</td>
+<td>Create order in Merret</td>
+</tr>
+<tr>
+<td><code>/api/orders/{id}</code></td>
+<td>GET</td>
+<td>All systems</td>
+<td>Verify order status (rarely used)</td>
+</tr>
+<tr>
+<td><code>/api/orders/{id}/cancel</code></td>
+<td>POST</td>
+<td>Farfetch only</td>
+<td>Cancel Farfetch order</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13-order-sources">1.3 Order Sources</h3>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Integration Method</th>
+<th>Format</th>
+<th>Frequency</th>
+<th>Special Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ecom</strong></td>
+<td>Push (API)</td>
+<td>Standard JSON</td>
+<td>Real-time</td>
+<td>Direct POST to Order API</td>
+</tr>
+<tr>
+<td><strong>Farfetch</strong></td>
+<td>Pull (Poller)</td>
+<td>Farfetch JSON</td>
+<td>Every 5 min</td>
+<td>Requires transformation</td>
+</tr>
+</tbody>
+</table>
+<h3 id="14-order-cancellation">1.4 Order Cancellation</h3>
+<ul>
+<li><strong>Ecom</strong>: Sends cancelled transaction (no cancellation endpoint needed)</li>
+<li><strong>Farfetch</strong>: Uses dedicated cancellation endpoint (<code>POST /api/orders/{id}/cancel</code>)</li>
+</ul>
+<hr>
+<h2 id="2-transaction-flow-architecture">2. Transaction Flow Architecture</h2>
+<h3 id="21-transaction-flow-diagram">2.1 Transaction Flow Diagram</h3>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart TD
+    subgraph "SFTP Sources"
+        ENACTOR_SFTP[Enactor SFTP<br/>CSV Files]
+        FARFETCH_SFTP[Farfetch SFTP<br/>JSON Files]
+    end
+
+    subgraph "API Source"
+        HOSP_API[Hospitality API]
+    end
+
+    subgraph "File Processing Pipeline"
+        ADF[Azure Data Factory<br/>Scheduled: Every 30-60 min]
+        BLOB[Blob Storage]
+        EG[Event Grid]
+        SBQ[Service Bus Queue<br/>transaction-queue]
+        TRANSFORM[TX Transformer Function]
+    end
+
+    subgraph "API Polling"
+        HOSPPOLLER[Hospitality Poller<br/>Timer: Every 5 min]
+    end
+
+    subgraph "Business Logic"
+        TXAPI[Transaction API<br/>Container App]
+    end
+
+    subgraph "Destinations"
+        MERRET[(Merret API<br/>Core System)]
+        COSMOS[(Cosmos DB<br/>Reporting)]
+    end
+
+    %% SFTP Flow
+    ENACTOR_SFTP -->|Upload files| ADF
+    FARFETCH_SFTP -->|Upload files| ADF
+    ADF -->|Copy to containers| BLOB
+    BLOB -->|transactions/enactor/**<br/>transactions/farfetch/**| EG
+    EG -->|BlobCreated event| SBQ
+    SBQ -->|Trigger| TRANSFORM
+    TRANSFORM -->|Identify source<br/>Transform format| TRANSFORM
+    TRANSFORM -->|POST /api/transactions| TXAPI
+
+    %% API Flow
+    HOSP_API -->|Poll every 5 min| HOSPPOLLER
+    HOSPPOLLER -->|Transform format| HOSPPOLLER
+    HOSPPOLLER -->|POST /api/transactions| TXAPI
+
+    %% Final Destinations
+    TXAPI -->|Write transaction| MERRET
+    TXAPI -->|Save for reporting<br/>async| COSMOS
+
+    style ENACTOR_SFTP fill:#ffe66d
+    style FARFETCH_SFTP fill:#ffe66d
+    style HOSP_API fill:#a8e6cf
+    style MERRET fill:#ff6b6b
+    style COSMOS fill:#f38181
+</div></code></pre>
+<h3 id="22-transaction-sources">2.2 Transaction Sources</h3>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Integration Method</th>
+<th>Format</th>
+<th>Frequency</th>
+<th>Container/Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Enactor</strong></td>
+<td>SFTP → Blob</td>
+<td>CSV</td>
+<td>Every 30-60 min</td>
+<td><code>transactions/enactor/</code></td>
+</tr>
+<tr>
+<td><strong>Farfetch</strong></td>
+<td>SFTP → Blob</td>
+<td>JSON</td>
+<td>Every 30-60 min</td>
+<td><code>transactions/farfetch/</code></td>
+</tr>
+<tr>
+<td><strong>Hospitality</strong></td>
+<td>API Pull</td>
+<td>JSON</td>
+<td>Every 5 min</td>
+<td>N/A (direct API)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-transaction-processing-flow">2.3 Transaction Processing Flow</h3>
+<h4 id="sftp-based-enactor-farfetch">SFTP-Based (Enactor, Farfetch):</h4>
+<ol>
+<li>External system uploads file to SFTP</li>
+<li>Azure Data Factory copies file to Blob Storage</li>
+<li>Event Grid detects blob creation</li>
+<li>Service Bus receives event</li>
+<li>Transaction Transformer Function triggered</li>
+<li>Function identifies source from blob path</li>
+<li>Function reads and transforms to standard format</li>
+<li>Function POSTs to Transaction API</li>
+<li>Transaction API writes to Merret + CosmosDB</li>
+</ol>
+<h4 id="api-based-hospitality">API-Based (Hospitality):</h4>
+<ol>
+<li>Timer triggers Hospitality Poller (every 5 min)</li>
+<li>Poller calls Hospitality API</li>
+<li>Poller transforms to standard format</li>
+<li>Poller POSTs to Transaction API</li>
+<li>Transaction API writes to Merret + CosmosDB</li>
+</ol>
+<h3 id="24-dual-write-pattern">2.4 Dual Write Pattern</h3>
+<pre><code class="language-mermaid"><div class="mermaid">graph LR
+    TXAPI[Transaction API]
+    MERRET[(Merret<br/>Critical)]
+    COSMOS[(Cosmos DB<br/>Reporting)]
+    
+    TXAPI -->|1. Sync write| MERRET
+    TXAPI -.->|2. Async write<br/>non-blocking| COSMOS
+    
+    style MERRET fill:#ff6b6b
+    style COSMOS fill:#f38181
+</div></code></pre>
+<ul>
+<li><strong>Merret</strong>: Synchronous write (critical, must succeed)</li>
+<li><strong>Cosmos DB</strong>: Asynchronous write (reporting, failure doesn't block request)</li>
+</ul>
+<hr>
+<h2 id="3-price-distribution-flow">3. Price Distribution Flow</h2>
+<h3 id="31-price-distribution-diagram">3.1 Price Distribution Diagram</h3>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant TIMER as Timer Trigger<br/>(Every 5 min)
+    participant WORKER as Price Worker<br/>(Container App)
+    participant MERRET as Merret API
+    participant TOPIC as Service Bus Topic<br/>price-updates
+    participant ENACTOR_SUB as Enactor Subscription
+    participant ECOM_SUB as Ecom Subscription
+    participant ENACTOR_FN as Enactor Sender<br/>(Function)
+    participant ECOM_FN as Ecom Sender<br/>(Function)
+    participant ENACTOR_SYS as Enactor System
+    participant ECOM_SYS as Ecom System
+
+    loop Every 5 minutes
+        TIMER->>WORKER: Trigger
+        WORKER->>WORKER: Get last processed time
+        WORKER->>MERRET: GET /prices?updatedSince=timestamp
+        MERRET-->>WORKER: Updated prices
+        WORKER->>WORKER: For each price update
+        WORKER->>TOPIC: Publish message
+        
+        TOPIC->>ENACTOR_SUB: Deliver to subscription
+        TOPIC->>ECOM_SUB: Deliver to subscription
+        
+        ENACTOR_SUB->>ENACTOR_FN: Trigger function
+        ENACTOR_FN->>ENACTOR_FN: Transform to Enactor format
+        ENACTOR_FN->>ENACTOR_SYS: POST price update
+        ENACTOR_SYS-->>ENACTOR_FN: Success
+        
+        ECOM_SUB->>ECOM_FN: Trigger function
+        ECOM_FN->>ECOM_FN: Transform to Ecom format
+        ECOM_FN->>ECOM_SYS: POST price update
+        ECOM_SYS-->>ECOM_FN: Success
+        
+        WORKER->>WORKER: Update last processed time
+    end
+</div></code></pre>
+<h3 id="32-price-distribution-details">3.2 Price Distribution Details</h3>
+<p><strong>Source</strong>: Merret (read-only for us)<br>
+<strong>Destinations</strong>: Enactor, Ecom<br>
+<strong>Method</strong>: Scheduled pull + Service Bus fan-out<br>
+<strong>Frequency</strong>: Every 5 minutes</p>
+<p><strong>Flow</strong>:</p>
+<ol>
+<li>Price Worker reads updated prices from Merret</li>
+<li>Publishes each price update to Service Bus Topic</li>
+<li>Two subscriptions (Enactor, Ecom) receive messages independently</li>
+<li>Each Azure Function transforms and sends to respective system</li>
+<li>Independent retry and error handling per destination</li>
+</ol>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>Decoupled: Enactor failure doesn't affect Ecom</li>
+<li>Scalable: Easy to add more destinations (new subscription + function)</li>
+<li>Resilient: Service Bus handles retries and dead-letter queues</li>
+</ul>
+<hr>
+<h2 id="4-product-flow">4. Product Flow</h2>
+<h3 id="41-product-flow-diagram">4.1 Product Flow Diagram</h3>
+<pre><code class="language-mermaid"><div class="mermaid">graph LR
+    EXT[External Systems]
+    APIM[API Management]
+    PRODAPI[Product API<br/>Container App]
+    MERRET[(Merret API)]
+    
+    EXT -->|GET /api/products/{id}| APIM
+    APIM -->|Cache: 5 min| PRODAPI
+    PRODAPI -->|Read| MERRET
+    MERRET -->|Product data| PRODAPI
+    PRODAPI -->|Response| APIM
+    APIM -->|Cached response| EXT
+    
+    EXT -->|POST /api/products| APIM
+    APIM --> PRODAPI
+    PRODAPI -->|Create| MERRET
+    MERRET -->|Created| PRODAPI
+    PRODAPI -->|Response| EXT
+    
+    EXT -->|PUT /api/products/{id}| APIM
+    APIM --> PRODAPI
+    PRODAPI -->|Update| MERRET
+    MERRET -->|Updated| PRODAPI
+    PRODAPI -->|Response| EXT
+    
+    style MERRET fill:#ff6b6b
+</div></code></pre>
+<h3 id="42-product-api-endpoints">4.2 Product API Endpoints</h3>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Purpose</th>
+<th>Caching</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/api/products/{id}</code></td>
+<td>GET</td>
+<td>Read product from Merret</td>
+<td>5 min (APIM)</td>
+</tr>
+<tr>
+<td><code>/api/products</code></td>
+<td>POST</td>
+<td>Create product in Merret</td>
+<td>No cache</td>
+</tr>
+<tr>
+<td><code>/api/products/{id}</code></td>
+<td>PUT</td>
+<td>Update product in Merret</td>
+<td>No cache</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Characteristics</strong>:</p>
+<ul>
+<li>Bidirectional: Read and write to Merret</li>
+<li>Simple pass-through with validation</li>
+<li>API Management caches GET requests</li>
+<li>Lower traffic compared to Orders/Transactions</li>
+</ul>
+<hr>
+<h2 id="5-product-enhancement-distribution-flow-pim">5. Product Enhancement Distribution Flow (PIM)</h2>
+<h3 id="51-product-enhancement-flow-diagram">5.1 Product Enhancement Flow Diagram</h3>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant TIMER as Timer Trigger<br/>(Daily at 2 AM)
+    participant WORKER as Product Enhancement Worker<br/>(Container App)
+    participant MERRET as Merret API
+    participant TOPIC as Service Bus Topic<br/>product-enhancements
+    participant PIM_SUB as PIM Subscription
+    participant PIM_FN as PIM Sender<br/>(Function)
+    participant PIM_SYS as PIM System
+
+    loop Once Daily (2 AM)
+        TIMER->>WORKER: Trigger
+        WORKER->>WORKER: Get last processed time
+        WORKER->>MERRET: GET /products?updatedSince=timestamp<br/>(delta: last 1 hour or 24 hours)
+        MERRET-->>WORKER: Updated products
+        WORKER->>WORKER: For each product update
+        WORKER->>TOPIC: Publish message
+        
+        TOPIC->>PIM_SUB: Deliver to subscription
+        
+        PIM_SUB->>PIM_FN: Trigger function
+        PIM_FN->>PIM_FN: Transform to PIM format<br/>(product enrichment data)
+        PIM_FN->>PIM_SYS: POST product enhancement
+        PIM_SYS-->>PIM_FN: Success
+        
+        WORKER->>WORKER: Update last processed time
+    end
+</div></code></pre>
+<h3 id="52-product-enhancement-distribution-details">5.2 Product Enhancement Distribution Details</h3>
+<p><strong>Source</strong>: Merret (product data with enhancements)<br>
+<strong>Destination</strong>: PIM (Product Information Management system)<br>
+<strong>Method</strong>: Scheduled pull (delta) + Service Bus<br>
+<strong>Frequency</strong>: Once daily (typically early morning, e.g., 2 AM)<br>
+<strong>Delta Window</strong>: Can be configured (1 hour or 24 hours)</p>
+<p><strong>Flow</strong>:</p>
+<ol>
+<li>Product Enhancement Worker triggers once daily (e.g., 2 AM)</li>
+<li>Reads updated/enhanced products from Merret (delta query)</li>
+<li>Publishes each product to Service Bus Topic</li>
+<li>PIM Subscription receives messages</li>
+<li>Azure Function transforms data to PIM format</li>
+<li>Function sends enhanced product data to PIM system</li>
+<li>Worker updates last processed timestamp</li>
+</ol>
+<p><strong>Why Daily?</strong>:</p>
+<ul>
+<li>Product enhancements don't change frequently</li>
+<li>PIM system typically batches updates</li>
+<li>Reduces load on Merret API</li>
+<li>Cost-effective (fewer executions)</li>
+</ul>
+<p><strong>Delta Query Options</strong>:</p>
+<pre class="hljs"><code><div>Option 1: Last 1 hour (in case of failures/retries)
+GET /products?updatedSince=2026-01-07T01:00:00Z
+
+Option 2: Last 24 hours (standard daily run)
+GET /products?updatedSince=2026-01-06T02:00:00Z
+
+Option 3: Full sync (weekly/monthly)
+GET /products (all products)
+</div></code></pre>
+<h3 id="53-pim-integration-specifics">5.3 PIM Integration Specifics</h3>
+<p><strong>Product Enhancement Data Includes</strong>:</p>
+<ul>
+<li>Rich product descriptions</li>
+<li>Marketing content</li>
+<li>SEO metadata</li>
+<li>Product images/videos URLs</li>
+<li>Categories and taxonomies</li>
+<li>Product relationships</li>
+<li>Attributes and specifications</li>
+</ul>
+<p><strong>Why Separate from Product API?</strong>:</p>
+<ul>
+<li>Product API: Transactional (create/update products in Merret)</li>
+<li>PIM Distribution: Informational (send enriched data to PIM for display)</li>
+<li>Different frequency and data payload</li>
+<li>PIM doesn't write back to Merret</li>
+</ul>
+<hr>
+<h2 id="6-azure-resources-architecture">6. Azure Resources Architecture</h2>
+<pre><code class="language-mermaid"><div class="mermaid">graph TB
+    subgraph "Compute - Container Apps/App Services"
+        CA1[Order API<br/>Min: 2, Max: 10]
+        CA2[Transaction API<br/>Min: 1, Max: 5]
+        CA3[Product API<br/>Min: 1, Max: 5]
+        CA4[Price Worker<br/>Min: 1, Max: 1]
+        CA5[Product Enhancement Worker<br/>Min: 1, Max: 1]
+    end
+
+    subgraph "Compute - Azure Functions"
+        FN1[Farfetch Order Poller<br/>Timer: 5 min]
+        FN2[Hospitality TX Poller<br/>Timer: 5 min]
+        FN3[TX Transformer<br/>Service Bus Trigger]
+        FN4[Enactor Price Sender<br/>Service Bus Trigger]
+        FN5[Ecom Price Sender<br/>Service Bus Trigger]
+        FN6[PIM Product Sender<br/>Service Bus Trigger]
+    end
+
+    subgraph "Storage"
+        BLOB[Blob Storage<br/>transactions/enactor<br/>transactions/farfetch]
+        COSMOS[Cosmos DB<br/>Database: reporting<br/>Container: transactions]
+    end
+
+    subgraph "Messaging & Events"
+        SBQ[Service Bus Queue<br/>transaction-queue]
+        SBT1[Service Bus Topic<br/>price-updates<br/>+ 2 subscriptions]
+        SBT2[Service Bus Topic<br/>product-enhancements<br/>+ 1 subscription]
+        EG[Event Grid<br/>Blob events]
+    end
+
+    subgraph "Integration"
+        ADF[Azure Data Factory<br/>SFTP → Blob]
+        APIM[API Management<br/>Gateway + Policies]
+    end
+
+    subgraph "Security & Monitoring"
+        KV[Key Vault<br/>Secrets, Keys, Certs]
+        AI[Application Insights<br/>Distributed Tracing]
+        MON[Azure Monitor<br/>Alerts, Dashboards]
+    end
+
+    CA1 --> KV
+    CA2 --> KV
+    CA3 --> KV
+    CA4 --> KV
+    CA5 --> KV
+    FN1 --> KV
+    FN2 --> KV
+    FN3 --> KV
+    
+    CA1 -.-> AI
+    CA2 -.-> AI
+    CA3 -.-> AI
+    CA4 -.-> AI
+    CA5 -.-> AI
+    FN1 -.-> AI
+    FN2 -.-> AI
+    FN3 -.-> AI
+    FN4 -.-> AI
+    FN5 -.-> AI
+    FN6 -.-> AI
+    
+    AI --> MON
+    
+    style APIM fill:#4ecdc4
+    style KV fill:#ffd93d
+    style AI fill:#6bcf7f
+</div></code></pre>
+<h3 id="51-azure-resources-summary">5.1 Azure Resources Summary</h3>
+<h4 id="compute-services">Compute Services</h4>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Count</th>
+<th>Purpose</th>
+<th>Scaling</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Container Apps / App Services</strong></td>
+<td>5</td>
+<td>APIs + Workers</td>
+<td>Auto-scale</td>
+</tr>
+<tr>
+<td>- Order API</td>
+<td>1</td>
+<td>Order processing</td>
+<td>Min: 2, Max: 10</td>
+</tr>
+<tr>
+<td>- Transaction API</td>
+<td>1</td>
+<td>Transaction processing</td>
+<td>Min: 1, Max: 5</td>
+</tr>
+<tr>
+<td>- Product API</td>
+<td>1</td>
+<td>Product CRUD</td>
+<td>Min: 1, Max: 5</td>
+</tr>
+<tr>
+<td>- Price Worker</td>
+<td>1</td>
+<td>Price distribution</td>
+<td>Min: 1, Max: 1 (singleton)</td>
+</tr>
+<tr>
+<td>- Product Enhancement Worker</td>
+<td>1</td>
+<td>Product distribution to PIM</td>
+<td>Min: 1, Max: 1 (singleton)</td>
+</tr>
+<tr>
+<td><strong>Azure Functions</strong></td>
+<td>6</td>
+<td>Pollers + Transformers + Senders</td>
+<td>Consumption Plan</td>
+</tr>
+<tr>
+<td>- Farfetch Order Poller</td>
+<td>1</td>
+<td>Pull orders every 5 min</td>
+<td>Auto-scale</td>
+</tr>
+<tr>
+<td>- Hospitality TX Poller</td>
+<td>1</td>
+<td>Pull transactions every 5 min</td>
+<td>Auto-scale</td>
+</tr>
+<tr>
+<td>- TX Transformer</td>
+<td>1</td>
+<td>Transform SFTP files</td>
+<td>Event-driven</td>
+</tr>
+<tr>
+<td>- Enactor Price Sender</td>
+<td>1</td>
+<td>Send prices to Enactor</td>
+<td>Event-driven</td>
+</tr>
+<tr>
+<td>- Ecom Price Sender</td>
+<td>1</td>
+<td>Send prices to Ecom</td>
+<td>Event-driven</td>
+</tr>
+<tr>
+<td>- PIM Product Sender</td>
+<td>1</td>
+<td>Send product enhancements to PIM</td>
+<td>Event-driven</td>
+</tr>
+</tbody>
+</table>
+<h4 id="storage--data">Storage &amp; Data</h4>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Purpose</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Blob Storage</strong></td>
+<td>Transaction files</td>
+<td>Containers: <code>transactions/enactor</code>, <code>transactions/farfetch</code></td>
+</tr>
+<tr>
+<td><strong>Cosmos DB</strong></td>
+<td>Transaction reporting</td>
+<td>NoSQL API, Partition Key: TransactionId, Autoscale: 400-4000 RU/s</td>
+</tr>
+</tbody>
+</table>
+<h4 id="messaging--events">Messaging &amp; Events</h4>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Purpose</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Service Bus Queue</strong></td>
+<td>Transaction processing</td>
+<td>Queue: <code>transaction-queue</code>, Max Delivery: 5, DLQ enabled</td>
+</tr>
+<tr>
+<td><strong>Service Bus Topic</strong></td>
+<td>Price distribution</td>
+<td>Topic: <code>price-updates</code>, Subscriptions: <code>enactor-price-sub</code>, <code>ecom-price-sub</code></td>
+</tr>
+<tr>
+<td><strong>Service Bus Topic</strong></td>
+<td>Product enhancement distribution</td>
+<td>Topic: <code>product-enhancements</code>, Subscription: <code>pim-product-sub</code></td>
+</tr>
+<tr>
+<td><strong>Event Grid</strong></td>
+<td>Blob events</td>
+<td>Filter: BlobCreated in transactions/**</td>
+</tr>
+</tbody>
+</table>
+<h4 id="integration">Integration</h4>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Azure Data Factory</strong></td>
+<td>SFTP → Blob copy (scheduled)</td>
+</tr>
+<tr>
+<td><strong>API Management</strong></td>
+<td>Gateway, authentication, rate limiting, caching</td>
+</tr>
+</tbody>
+</table>
+<h4 id="security--monitoring">Security &amp; Monitoring</h4>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Key Vault</strong></td>
+<td>Store all secrets, connection strings, API keys</td>
+</tr>
+<tr>
+<td><strong>Application Insights</strong></td>
+<td>Distributed tracing, metrics, logs</td>
+</tr>
+<tr>
+<td><strong>Azure Monitor</strong></td>
+<td>Alerts, dashboards, log analytics</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="6-integration-matrix">6. Integration Matrix</h2>
+<h3 id="61-external-system-connections">6.1 External System Connections</h3>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Direction</th>
+<th>Data Type</th>
+<th>Method</th>
+<th>Frequency</th>
+<th>Format</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ecom</strong></td>
+<td>Inbound</td>
+<td>Orders</td>
+<td>Push (API)</td>
+<td>Real-time</td>
+<td>JSON</td>
+<td>Direct POST to Order API</td>
+</tr>
+<tr>
+<td><strong>Ecom</strong></td>
+<td>Inbound</td>
+<td>Cancelled TX</td>
+<td>Push (API)</td>
+<td>Real-time</td>
+<td>JSON</td>
+<td>Sends cancelled transaction</td>
+</tr>
+<tr>
+<td><strong>Ecom</strong></td>
+<td>Outbound</td>
+<td>Prices</td>
+<td>Push (Service Bus)</td>
+<td>Every 5 min</td>
+<td>JSON</td>
+<td>Via Azure Function</td>
+</tr>
+<tr>
+<td><strong>Farfetch</strong></td>
+<td>Inbound</td>
+<td>Orders</td>
+<td>Pull (API)</td>
+<td>Every 5 min</td>
+<td>JSON</td>
+<td>Requires transformation</td>
+</tr>
+<tr>
+<td><strong>Farfetch</strong></td>
+<td>Inbound</td>
+<td>Transactions</td>
+<td>Pull (SFTP)</td>
+<td>Every 30-60 min</td>
+<td>JSON</td>
+<td>Via ADF → Blob</td>
+</tr>
+<tr>
+<td><strong>Farfetch</strong></td>
+<td>Bidirectional</td>
+<td>Cancellation</td>
+<td>API</td>
+<td>Real-time</td>
+<td>JSON</td>
+<td>Special endpoint for Farfetch only</td>
+</tr>
+<tr>
+<td><strong>Enactor</strong></td>
+<td>Inbound</td>
+<td>Transactions</td>
+<td>Pull (SFTP)</td>
+<td>Every 30-60 min</td>
+<td>CSV</td>
+<td>Via ADF → Blob</td>
+</tr>
+<tr>
+<td><strong>Enactor</strong></td>
+<td>Outbound</td>
+<td>Prices</td>
+<td>Push (Service Bus)</td>
+<td>Every 5 min</td>
+<td>JSON</td>
+<td>Via Azure Function</td>
+</tr>
+<tr>
+<td><strong>Hospitality</strong></td>
+<td>Inbound</td>
+<td>Transactions</td>
+<td>Pull (API)</td>
+<td>Every 5 min</td>
+<td>JSON</td>
+<td>Requires transformation</td>
+</tr>
+<tr>
+<td><strong>PIM</strong></td>
+<td>Outbound</td>
+<td>Product Enhancements</td>
+<td>Push (Service Bus)</td>
+<td>Daily (2 AM)</td>
+<td>JSON</td>
+<td>Enriched product data</td>
+</tr>
+<tr>
+<td><strong>Merret DB</strong></td>
+<td>Bidirectional</td>
+<td>All</td>
+<td>Database</td>
+<td>Real-time</td>
+<td>SQL</td>
+<td>Core inventory database (via data service layer)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-data-flow-direction-map">6.2 Data Flow Direction Map</h3>
+<pre><code class="language-mermaid"><div class="mermaid">graph TD
+    subgraph External
+        ECOM[Ecom]
+        FARFETCH[Farfetch]
+        ENACTOR[Enactor]
+        HOSP[Hospitality]
+        PIM[PIM]
+    end
+    
+    subgraph Hub
+        APIS[Integration Hub<br/>APIs + Functions]
+    end
+    
+    subgraph Core
+        MERRETDB[Merret DB<br/>Core System]
+    end
+    
+    ECOM -->|Orders<br/>Cancelled TX| APIS
+    APIS -->|Prices| ECOM
+    
+    FARFETCH -->|Orders pull<br/>TX via SFTP| APIS
+    APIS <-->|Cancellation| FARFETCH
+    
+    ENACTOR -->|TX via SFTP| APIS
+    APIS -->|Prices| ENACTOR
+    
+    HOSP -->|TX pull| APIS
+    
+    APIS -->|Product Enhancements<br/>Daily| PIM
+    
+    APIS <-->|All data via<br/>Data Service| MERRETDB
+    
+    style MERRET fill:#ff6b6b
+    style APIS fill:#4ecdc4
+</div></code></pre>
+<hr>
+<h2 id="7-resilience--error-handling">7. Resilience &amp; Error Handling</h2>
+<h3 id="71-retry-strategies">7.1 Retry Strategies</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Retry Policy</th>
+<th>Max Retries</th>
+<th>Backoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Service Bus</strong></td>
+<td>Exponential</td>
+<td>5</td>
+<td>2^n seconds</td>
+</tr>
+<tr>
+<td><strong>HTTP Clients</strong></td>
+<td>Exponential (Polly)</td>
+<td>3</td>
+<td>2^n seconds</td>
+</tr>
+<tr>
+<td><strong>Azure Functions</strong></td>
+<td>Built-in</td>
+<td>5</td>
+<td>Exponential</td>
+</tr>
+<tr>
+<td><strong>Container Apps</strong></td>
+<td>None (app-level)</td>
+<td>Custom</td>
+<td>Custom</td>
+</tr>
+</tbody>
+</table>
+<h3 id="72-circuit-breaker">7.2 Circuit Breaker</h3>
+<pre><code class="language-mermaid"><div class="mermaid">stateDiagram-v2
+    [*] --> Closed
+    Closed --> Open: 5 consecutive failures
+    Open --> HalfOpen: After 30 seconds
+    HalfOpen --> Closed: Success
+    HalfOpen --> Open: Failure
+    
+    note right of Closed
+        Normal operation
+        All requests allowed
+    end note
+    
+    note right of Open
+        Stop sending requests
+        Fail fast
+    end note
+    
+    note right of HalfOpen
+        Test if service recovered
+        Limited requests
+    end note
+</div></code></pre>
+<p><strong>Applied to</strong>:</p>
+<ul>
+<li>All Typed HttpClients (Merret, External Systems)</li>
+<li>Prevents cascading failures</li>
+<li>Configured: 5 failures → open for 30 seconds</li>
+</ul>
+<h3 id="73-dead-letter-queue-handling">7.3 Dead Letter Queue Handling</h3>
+<p><strong>Triggers for DLQ</strong>:</p>
+<ul>
+<li>Max delivery count exceeded (5 attempts)</li>
+<li>Message processing timeout</li>
+<li>Unhandled exceptions</li>
+</ul>
+<p><strong>DLQ Processing</strong>:</p>
+<ul>
+<li>Monitor DLQ depth (alert if &gt; 10 messages)</li>
+<li>Manual review and retry</li>
+<li>Store in error table for investigation</li>
+</ul>
+<hr>
+<h2 id="8-security-architecture">8. Security Architecture</h2>
+<h3 id="81-authentication--authorization">8.1 Authentication &amp; Authorization</h3>
+<pre><code class="language-mermaid"><div class="mermaid">graph LR
+    EXT[External Systems]
+    APIM[API Management<br/>OAuth/API Key]
+    API[APIs<br/>Azure AD Auth]
+    MERRET[Merret<br/>API Key]
+    
+    EXT -->|API Key/OAuth| APIM
+    APIM -->|JWT| API
+    API -->|API Key| MERRET
+    
+    style APIM fill:#ffd93d
+</div></code></pre>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Method</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>External → APIM</strong></td>
+<td>API Key or OAuth 2.0</td>
+<td>Per-client credentials</td>
+</tr>
+<tr>
+<td><strong>APIM → APIs</strong></td>
+<td>JWT (Azure AD)</td>
+<td>Managed Identity</td>
+</tr>
+<tr>
+<td><strong>APIs → Merret</strong></td>
+<td>API Key</td>
+<td>Stored in Key Vault</td>
+</tr>
+<tr>
+<td><strong>APIs → External</strong></td>
+<td>API Key</td>
+<td>Stored in Key Vault</td>
+</tr>
+</tbody>
+</table>
+<h3 id="82-secrets-management">8.2 Secrets Management</h3>
+<p><strong>All secrets stored in Azure Key Vault</strong>:</p>
+<ul>
+<li>Merret API key</li>
+<li>Ecom API key</li>
+<li>Farfetch API credentials</li>
+<li>Enactor SFTP credentials</li>
+<li>Enactor API key</li>
+<li>Hospitality API key</li>
+<li>Service Bus connection strings</li>
+<li>Cosmos DB keys</li>
+<li>Storage account keys</li>
+</ul>
+<p><strong>Access</strong>:</p>
+<ul>
+<li>Container Apps/Functions use Managed Identity</li>
+<li>No secrets in code or configuration files</li>
+<li>Automatic rotation supported</li>
+</ul>
+<h3 id="83-network-security">8.3 Network Security</h3>
+<pre><code class="language-mermaid"><div class="mermaid">graph TB
+    INTERNET[Internet]
+    APIM[API Management<br/>Public Endpoint]
+    VNET[Virtual Network]
+    APIS[Container Apps<br/>Private Endpoints]
+    COSMOS[Cosmos DB<br/>Private Endpoint]
+    BLOB[Blob Storage<br/>Private Endpoint]
+    
+    INTERNET --> APIM
+    APIM --> VNET
+    VNET --> APIS
+    APIS --> COSMOS
+    APIS --> BLOB
+    
+    style VNET fill:#e3f2fd
+</div></code></pre>
+<p><strong>Recommendations</strong>:</p>
+<ul>
+<li>API Management in VNet</li>
+<li>Container Apps with private endpoints</li>
+<li>Cosmos DB with private endpoint</li>
+<li>Blob Storage with private endpoint</li>
+<li>NSGs to restrict traffic</li>
+</ul>
+<hr>
+<h2 id="9-monitoring--observability">9. Monitoring &amp; Observability</h2>
+<h3 id="91-distributed-tracing">9.1 Distributed Tracing</h3>
+<pre><code class="language-mermaid"><div class="mermaid">graph LR
+    REQ[Request]
+    APIM[APIM<br/>TraceId: ABC123]
+    API[Order API<br/>TraceId: ABC123]
+    MERRET[Merret<br/>TraceId: ABC123]
+    AI[Application Insights]
+    
+    REQ --> APIM
+    APIM --> API
+    API --> MERRET
+    
+    APIM -.->|Log| AI
+    API -.->|Log| AI
+    MERRET -.->|Log| AI
+    
+    style AI fill:#6bcf7f
+</div></code></pre>
+<p><strong>Correlation ID flows through</strong>:</p>
+<ul>
+<li>API Management</li>
+<li>Order/Transaction/Product APIs</li>
+<li>Azure Functions</li>
+<li>External system calls</li>
+<li>Logged to Application Insights</li>
+</ul>
+<h3 id="92-key-metrics">9.2 Key Metrics</h3>
+<h4 id="api-metrics">API Metrics</h4>
+<ul>
+<li>Request rate (requests/second)</li>
+<li>Response time (P50, P95, P99)</li>
+<li>Error rate (4xx, 5xx)</li>
+<li>Success rate (%)</li>
+<li>Dependency call duration</li>
+</ul>
+<h4 id="function-metrics">Function Metrics</h4>
+<ul>
+<li>Execution count</li>
+<li>Execution duration</li>
+<li>Failure count</li>
+<li>Dead letter queue depth</li>
+</ul>
+<h4 id="service-bus-metrics">Service Bus Metrics</h4>
+<ul>
+<li>Active message count</li>
+<li>Dead letter message count</li>
+<li>Incoming/outgoing messages</li>
+<li>Message throughput</li>
+</ul>
+<h4 id="cosmos-db-metrics">Cosmos DB Metrics</h4>
+<ul>
+<li>Request units consumed</li>
+<li>Throttling (429 errors)</li>
+<li>Document count</li>
+<li>Storage used</li>
+</ul>
+<h3 id="93-alerts-configuration">9.3 Alerts Configuration</h3>
+<table>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Metric</th>
+<th>Threshold</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Critical</strong></td>
+<td>Service Bus DLQ</td>
+<td>&gt; 10 messages</td>
+<td>PagerDuty + Email</td>
+</tr>
+<tr>
+<td><strong>Critical</strong></td>
+<td>API Error Rate</td>
+<td>&gt; 5%</td>
+<td>PagerDuty + Email</td>
+</tr>
+<tr>
+<td><strong>Critical</strong></td>
+<td>Merret API Down</td>
+<td>Circuit breaker open</td>
+<td>PagerDuty + Email</td>
+</tr>
+<tr>
+<td><strong>High</strong></td>
+<td>Function Failures</td>
+<td>&gt; 10/hour</td>
+<td>Email</td>
+</tr>
+<tr>
+<td><strong>High</strong></td>
+<td>API Response Time</td>
+<td>P95 &gt; 2s</td>
+<td>Email</td>
+</tr>
+<tr>
+<td><strong>Medium</strong></td>
+<td>Cosmos DB Throttling</td>
+<td>Any 429 errors</td>
+<td>Email</td>
+</tr>
+<tr>
+<td><strong>Medium</strong></td>
+<td>Container App CPU</td>
+<td>&gt; 80%</td>
+<td>Email + Auto-scale</td>
+</tr>
+</tbody>
+</table>
+<h3 id="94-dashboards">9.4 Dashboards</h3>
+<p><strong>Operations Dashboard</strong>:</p>
+<ul>
+<li>Real-time request rates per API</li>
+<li>Error rates and types</li>
+<li>Dependency health (Merret, External Systems)</li>
+<li>Service Bus queue depths</li>
+<li>Function execution counts</li>
+</ul>
+<p><strong>Business Dashboard</strong>:</p>
+<ul>
+<li>Orders processed (by source: Ecom, Farfetch)</li>
+<li>Transactions processed (by source: Enactor, Farfetch, Hospitality)</li>
+<li>Price updates distributed</li>
+<li>Success/failure rates per integration</li>
+</ul>
+<hr>
+<h2 id="10-scaling-strategy">10. Scaling Strategy</h2>
+<h3 id="101-auto-scaling-configuration">10.1 Auto-Scaling Configuration</h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Min</th>
+<th>Max</th>
+<th>Scale Trigger</th>
+<th>Scale-Out</th>
+<th>Scale-In</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Order API</strong></td>
+<td>2</td>
+<td>10</td>
+<td>CPU &gt; 70% OR HTTP Queue &gt; 100</td>
+<td>Add 1 instance</td>
+<td>Remove after 5 min idle</td>
+</tr>
+<tr>
+<td><strong>Transaction API</strong></td>
+<td>1</td>
+<td>5</td>
+<td>HTTP Queue &gt; 50</td>
+<td>Add 1 instance</td>
+<td>Remove after 5 min idle</td>
+</tr>
+<tr>
+<td><strong>Product API</strong></td>
+<td>1</td>
+<td>5</td>
+<td>CPU &gt; 60%</td>
+<td>Add 1 instance</td>
+<td>Remove after 5 min idle</td>
+</tr>
+<tr>
+<td><strong>Price Worker</strong></td>
+<td>1</td>
+<td>1</td>
+<td>N/A (singleton)</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>Product Enhancement Worker</strong></td>
+<td>1</td>
+<td>1</td>
+<td>N/A (singleton)</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>Functions</strong></td>
+<td>0</td>
+<td>10/5</td>
+<td>Queue length</td>
+<td>Auto</td>
+<td>Auto</td>
+</tr>
+</tbody>
+</table>
+<h3 id="102-performance-targets">10.2 Performance Targets</h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Target Latency</th>
+<th>Target Throughput</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Order API</strong></td>
+<td>&lt; 500ms (P95)</td>
+<td>1000 req/min</td>
+</tr>
+<tr>
+<td><strong>Transaction API</strong></td>
+<td>&lt; 1s (P95)</td>
+<td>500 req/min</td>
+</tr>
+<tr>
+<td><strong>Product API</strong></td>
+<td>&lt; 300ms (P95)</td>
+<td>200 req/min</td>
+</tr>
+<tr>
+<td><strong>Price Distribution</strong></td>
+<td>N/A (async)</td>
+<td>10,000 prices/cycle</td>
+</tr>
+<tr>
+<td><strong>Product Enhancement Distribution</strong></td>
+<td>N/A (async)</td>
+<td>50,000 products/day</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="11-cost-optimization">11. Cost Optimization</h2>
+<h3 id="111-cost-estimates-monthly">11.1 Cost Estimates (Monthly)</h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Tier</th>
+<th>Estimated Cost</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Container Apps</strong></td>
+<td>Consumption</td>
+<td>$100-350</td>
+<td>Scales to zero, +1 worker</td>
+</tr>
+<tr>
+<td><strong>Azure Functions</strong></td>
+<td>Consumption</td>
+<td>$50-180</td>
+<td>Pay per execution, +1 function</td>
+</tr>
+<tr>
+<td><strong>Service Bus</strong></td>
+<td>Standard</td>
+<td>$10</td>
+<td>+1 topic (3 topics total)</td>
+</tr>
+<tr>
+<td><strong>Cosmos DB</strong></td>
+<td>Autoscale</td>
+<td>$50-200</td>
+<td>400-4000 RU/s</td>
+</tr>
+<tr>
+<td><strong>Blob Storage</strong></td>
+<td>Hot</td>
+<td>$20-50</td>
+<td>Transaction files</td>
+</tr>
+<tr>
+<td><strong>API Management</strong></td>
+<td>Developer/Standard</td>
+<td>$50-700</td>
+<td>Start with Developer</td>
+</tr>
+<tr>
+<td><strong>Application Insights</strong></td>
+<td>Pay-as-you-go</td>
+<td>$50-100</td>
+<td>Based on data ingestion</td>
+</tr>
+<tr>
+<td><strong>Key Vault</strong></td>
+<td>Standard</td>
+<td>$5</td>
+<td>Secrets storage</td>
+</tr>
+<tr>
+<td><strong>Data Factory</strong></td>
+<td>Pay-as-you-go</td>
+<td>$20-50</td>
+<td>Based on executions</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong>$360-1630/month</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="112-cost-optimization-strategies">11.2 Cost Optimization Strategies</h3>
+<ol>
+<li><strong>Functions</strong>: Use Consumption plan (pay per execution)</li>
+<li><strong>Container Apps</strong>: Scale to zero for low-traffic services</li>
+<li><strong>Service Bus</strong>: Start with Standard tier</li>
+<li><strong>Cosmos DB</strong>: Use autoscale (lower bound 400 RU/s)</li>
+<li><strong>Blob Storage</strong>: Move old files to Cool/Archive tier</li>
+<li><strong>API Management</strong>: Start with Developer tier</li>
+<li><strong>Monitoring</strong>: Tune sampling rate in Application Insights</li>
+</ol>
+<hr>
+<h2 id="12-deployment-strategy">12. Deployment Strategy</h2>
+<h3 id="121-cicd-pipeline">12.1 CI/CD Pipeline</h3>
+<pre><code class="language-mermaid"><div class="mermaid">graph LR
+    CODE[Code Repository<br/>GitHub/Azure DevOps]
+    BUILD[Build Pipeline]
+    TEST[Unit Tests<br/>Integration Tests]
+    DEV[Dev Environment]
+    STAGE[Staging Environment]
+    PROD[Production Environment]
+    
+    CODE --> BUILD
+    BUILD --> TEST
+    TEST --> DEV
+    DEV --> STAGE
+    STAGE -->|Manual Approval| PROD
+    
+    style PROD fill:#ff6b6b
+    style STAGE fill:#ffd93d
+    style DEV fill:#a8e6cf
+</div></code></pre>
+<h3 id="122-environment-strategy">12.2 Environment Strategy</h3>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Purpose</th>
+<th>Deployment</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Dev</strong></td>
+<td>Development</td>
+<td>Automatic on commit</td>
+<td>Mock/synthetic</td>
+</tr>
+<tr>
+<td><strong>Staging</strong></td>
+<td>Pre-production testing</td>
+<td>Automatic after Dev</td>
+<td>Anonymized production data</td>
+</tr>
+<tr>
+<td><strong>Production</strong></td>
+<td>Live system</td>
+<td>Manual approval</td>
+<td>Live data</td>
+</tr>
+</tbody>
+</table>
+<h3 id="123-deployment-order">12.3 Deployment Order</h3>
+<ol>
+<li><strong>Infrastructure</strong> (Azure resources via Bicep/Terraform)</li>
+<li><strong>Secrets</strong> (Key Vault)</li>
+<li><strong>Functions</strong> (Pollers, Transformers, Senders)</li>
+<li><strong>APIs</strong> (Order, Transaction, Product)</li>
+<li><strong>Workers</strong> (Price Distribution)</li>
+<li><strong>ADF Pipelines</strong></li>
+<li><strong>APIM Policies</strong></li>
+<li><strong>Monitoring</strong> (Alerts, Dashboards)</li>
+</ol>
+<hr>
+<h2 id="13-disaster-recovery">13. Disaster Recovery</h2>
+<h3 id="131-backup-strategy">13.1 Backup Strategy</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Backup Method</th>
+<th>Frequency</th>
+<th>Retention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cosmos DB</strong></td>
+<td>Automatic + Manual</td>
+<td>Continuous</td>
+<td>30 days</td>
+</tr>
+<tr>
+<td><strong>Blob Storage</strong></td>
+<td>Geo-redundant</td>
+<td>Continuous</td>
+<td>90 days</td>
+</tr>
+<tr>
+<td><strong>Service Bus</strong></td>
+<td>Geo-replication (Premium)</td>
+<td>Continuous</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>Configuration</strong></td>
+<td>Source control</td>
+<td>Every commit</td>
+<td>Forever</td>
+</tr>
+<tr>
+<td><strong>Secrets</strong></td>
+<td>Key Vault backup</td>
+<td>Daily</td>
+<td>90 days</td>
+</tr>
+</tbody>
+</table>
+<h3 id="132-recovery-time-objectives">13.2 Recovery Time Objectives</h3>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>RTO</th>
+<th>RPO</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>API Failure</strong></td>
+<td>&lt; 5 min</td>
+<td>0</td>
+<td>Auto-restart, health checks</td>
+</tr>
+<tr>
+<td><strong>Function Failure</strong></td>
+<td>&lt; 5 min</td>
+<td>0</td>
+<td>Auto-retry, DLQ processing</td>
+</tr>
+<tr>
+<td><strong>Region Outage</strong></td>
+<td>&lt; 4 hours</td>
+<td>&lt; 1 hour</td>
+<td>Failover to secondary region</td>
+</tr>
+<tr>
+<td><strong>Data Corruption</strong></td>
+<td>&lt; 2 hours</td>
+<td>&lt; 1 hour</td>
+<td>Restore from Cosmos backup</td>
+</tr>
+</tbody>
+</table>
+<h3 id="133-high-availability">13.3 High Availability</h3>
+<pre><code class="language-mermaid"><div class="mermaid">graph TB
+    subgraph "Primary Region"
+        API1[APIs]
+        FN1[Functions]
+        COSMOS1[Cosmos DB]
+    end
+    
+    subgraph "Secondary Region (Optional)"
+        API2[APIs - Standby]
+        FN2[Functions - Standby]
+        COSMOS2[Cosmos DB - Replica]
+    end
+    
+    TM[Traffic Manager<br/>or Front Door]
+    
+    TM --> API1
+    TM -.->|Failover| API2
+    COSMOS1 -.->|Replication| COSMOS2
+    
+    style TM fill:#4ecdc4
+</div></code></pre>
+<p><strong>Options</strong>:</p>
+<ul>
+<li><strong>Active-Passive</strong>: Primary region active, secondary on standby</li>
+<li><strong>Active-Active</strong>: Both regions serve traffic (more expensive)</li>
+<li><strong>Multi-region Cosmos DB</strong>: Automatic replication</li>
+</ul>
+<hr>
+<h2 id="14-technology-stack">14. Technology Stack</h2>
+<h3 id="141-languages--frameworks">14.1 Languages &amp; Frameworks</h3>
+<pre class="hljs"><code><div><span class="hljs-attr">Primary Language:</span> <span class="hljs-string">C#</span> <span class="hljs-string">(.NET</span> <span class="hljs-number">8</span><span class="hljs-string">)</span>
+
+<span class="hljs-attr">Frameworks:</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">ASP.NET</span> <span class="hljs-string">Core</span> <span class="hljs-number">8</span> <span class="hljs-string">(Web</span> <span class="hljs-string">APIs)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Functions</span> <span class="hljs-string">.NET</span> <span class="hljs-number">8</span> <span class="hljs-string">Isolated</span> <span class="hljs-string">Worker</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Minimal</span> <span class="hljs-string">APIs</span>
+  
+<span class="hljs-attr">Key Libraries:</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure.Messaging.ServiceBus</span> <span class="hljs-string">(Service</span> <span class="hljs-string">Bus</span> <span class="hljs-string">SDK)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure.Storage.Blobs</span> <span class="hljs-string">(Blob</span> <span class="hljs-string">SDK)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Microsoft.Azure.Cosmos</span> <span class="hljs-string">(Cosmos</span> <span class="hljs-string">DB</span> <span class="hljs-string">SDK)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Microsoft.Extensions.Http</span> <span class="hljs-string">(Typed</span> <span class="hljs-string">HttpClient)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Polly</span> <span class="hljs-string">(Resilience</span> <span class="hljs-string">&amp;</span> <span class="hljs-string">transient</span> <span class="hljs-string">fault</span> <span class="hljs-string">handling)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">System.Text.Json</span> <span class="hljs-string">(Serialization)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Serilog</span> <span class="hljs-string">(Structured</span> <span class="hljs-string">logging)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">FluentValidation</span> <span class="hljs-string">(Input</span> <span class="hljs-string">validation)</span>
+</div></code></pre>
+<h3 id="142-azure-services">14.2 Azure Services</h3>
+<pre class="hljs"><code><div><span class="hljs-attr">Compute:</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Container</span> <span class="hljs-string">Apps</span> <span class="hljs-string">(APIs,</span> <span class="hljs-string">Workers)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Functions</span> <span class="hljs-string">(Consumption</span> <span class="hljs-string">Plan)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">App</span> <span class="hljs-string">Service</span> <span class="hljs-string">(alternative</span> <span class="hljs-string">to</span> <span class="hljs-string">Container</span> <span class="hljs-string">Apps)</span>
+
+<span class="hljs-attr">Storage:</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Blob</span> <span class="hljs-string">Storage</span> <span class="hljs-string">(Transaction</span> <span class="hljs-string">files)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Cosmos</span> <span class="hljs-string">DB</span> <span class="hljs-string">(NoSQL,</span> <span class="hljs-string">reporting)</span>
+
+<span class="hljs-attr">Messaging:</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Service</span> <span class="hljs-string">Bus</span> <span class="hljs-string">(Queues,</span> <span class="hljs-string">Topics)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Event</span> <span class="hljs-string">Grid</span> <span class="hljs-string">(Event</span> <span class="hljs-string">routing)</span>
+
+<span class="hljs-attr">Integration:</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Data</span> <span class="hljs-string">Factory</span> <span class="hljs-string">(ETL</span> <span class="hljs-string">pipelines)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">API</span> <span class="hljs-string">Management</span> <span class="hljs-string">(API</span> <span class="hljs-string">Gateway)</span>
+
+<span class="hljs-attr">Security:</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Key</span> <span class="hljs-string">Vault</span> <span class="hljs-string">(Secrets</span> <span class="hljs-string">management)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Active</span> <span class="hljs-string">Directory</span> <span class="hljs-string">(Authentication)</span>
+
+<span class="hljs-attr">Monitoring:</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Application</span> <span class="hljs-string">Insights</span> <span class="hljs-string">(APM)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Monitor</span> <span class="hljs-string">(Metrics,</span> <span class="hljs-string">Logs,</span> <span class="hljs-string">Alerts)</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Log</span> <span class="hljs-string">Analytics</span> <span class="hljs-string">(Query</span> <span class="hljs-string">&amp;</span> <span class="hljs-string">analysis)</span>
+</div></code></pre>
+<h3 id="143-development-tools">14.3 Development Tools</h3>
+<pre class="hljs"><code><div><span class="hljs-attr">IDE:</span> <span class="hljs-string">Visual</span> <span class="hljs-string">Studio</span> <span class="hljs-string">Code</span> <span class="hljs-string">/</span> <span class="hljs-string">Visual</span> <span class="hljs-string">Studio</span> <span class="hljs-number">2022</span>
+<span class="hljs-attr">Source Control:</span> <span class="hljs-string">Git</span> <span class="hljs-string">(GitHub</span> <span class="hljs-string">or</span> <span class="hljs-string">Azure</span> <span class="hljs-string">DevOps)</span>
+<span class="hljs-attr">CI/CD:</span> <span class="hljs-string">Azure</span> <span class="hljs-string">DevOps</span> <span class="hljs-string">Pipelines</span> <span class="hljs-string">or</span> <span class="hljs-string">GitHub</span> <span class="hljs-string">Actions</span>
+<span class="hljs-attr">IaC:</span> <span class="hljs-string">Bicep</span> <span class="hljs-string">or</span> <span class="hljs-string">Terraform</span>
+<span class="hljs-attr">API Testing:</span> <span class="hljs-string">Postman,</span> <span class="hljs-string">REST</span> <span class="hljs-string">Client</span>
+<span class="hljs-attr">Load Testing:</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Load</span> <span class="hljs-string">Testing,</span> <span class="hljs-string">k6</span>
+<span class="hljs-attr">Monitoring:</span> <span class="hljs-string">Azure</span> <span class="hljs-string">Portal,</span> <span class="hljs-string">Grafana</span> <span class="hljs-string">(optional)</span>
+</div></code></pre>
+<hr>
+<h2 id="15-api-contracts">15. API Contracts</h2>
+<h3 id="151-order-api">15.1 Order API</h3>
+<h4 id="post-apiorders">POST /api/orders</h4>
+<pre class="hljs"><code><div>Request:
+{
+  <span class="hljs-attr">"orderId"</span>: <span class="hljs-string">"ORD-12345"</span>,
+  <span class="hljs-attr">"customerId"</span>: <span class="hljs-string">"CUST-789"</span>,
+  <span class="hljs-attr">"orderDate"</span>: <span class="hljs-string">"2026-01-07T10:30:00Z"</span>,
+  <span class="hljs-attr">"items"</span>: [
+    {
+      <span class="hljs-attr">"productId"</span>: <span class="hljs-string">"PROD-001"</span>,
+      <span class="hljs-attr">"quantity"</span>: <span class="hljs-number">2</span>,
+      <span class="hljs-attr">"price"</span>: <span class="hljs-number">29.99</span>,
+      <span class="hljs-attr">"total"</span>: <span class="hljs-number">59.98</span>
+    }
+  ],
+  <span class="hljs-attr">"totalAmount"</span>: <span class="hljs-number">59.98</span>,
+  <span class="hljs-attr">"currency"</span>: <span class="hljs-string">"USD"</span>,
+  <span class="hljs-attr">"sourceSystem"</span>: <span class="hljs-string">"Ecom"</span>
+}
+
+Response (<span class="hljs-number">200</span> OK):
+{
+  <span class="hljs-attr">"orderId"</span>: <span class="hljs-string">"ORD-12345"</span>,
+  <span class="hljs-attr">"merretOrderId"</span>: <span class="hljs-string">"MER-67890"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"Created"</span>
+}
+</div></code></pre>
+<h4 id="post-apiordersidcancel">POST /api/orders/{id}/cancel</h4>
+<pre class="hljs"><code><div>Request:
+{
+  <span class="hljs-attr">"reason"</span>: <span class="hljs-string">"Customer requested"</span>,
+  <span class="hljs-attr">"source"</span>: <span class="hljs-string">"Farfetch"</span>
+}
+
+Response (<span class="hljs-number">200</span> OK):
+{
+  <span class="hljs-attr">"orderId"</span>: <span class="hljs-string">"ORD-12345"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"Cancelled"</span>
+}
+</div></code></pre>
+<h3 id="152-transaction-api">15.2 Transaction API</h3>
+<h4 id="post-apitransactions">POST /api/transactions</h4>
+<pre class="hljs"><code><div>Request:
+{
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"TXN-12345"</span>,
+  <span class="hljs-attr">"amount"</span>: <span class="hljs-number">150.50</span>,
+  <span class="hljs-attr">"date"</span>: <span class="hljs-string">"2026-01-07T15:45:00Z"</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"Sale"</span>,
+  <span class="hljs-attr">"customerId"</span>: <span class="hljs-string">"CUST-789"</span>,
+  <span class="hljs-attr">"sourceSystem"</span>: <span class="hljs-string">"Enactor"</span>,
+  <span class="hljs-attr">"metadata"</span>: {
+    <span class="hljs-attr">"storeId"</span>: <span class="hljs-string">"STORE-001"</span>,
+    <span class="hljs-attr">"terminalId"</span>: <span class="hljs-string">"POS-05"</span>
+  }
+}
+
+Response (<span class="hljs-number">200</span> OK):
+{
+  <span class="hljs-attr">"transactionId"</span>: <span class="hljs-string">"TXN-12345"</span>,
+  <span class="hljs-attr">"merretTransactionId"</span>: <span class="hljs-string">"MTXN-98765"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"Success"</span>
+}
+</div></code></pre>
+<h3 id="153-product-api">15.3 Product API</h3>
+<h4 id="get-apiproductsid">GET /api/products/{id}</h4>
+<pre class="hljs"><code><div>Response (<span class="hljs-number">200</span> OK):
+{
+  <span class="hljs-attr">"productId"</span>: <span class="hljs-string">"PROD-001"</span>,
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"Blue Widget"</span>,
+  <span class="hljs-attr">"sku"</span>: <span class="hljs-string">"SKU-12345"</span>,
+  <span class="hljs-attr">"price"</span>: <span class="hljs-number">29.99</span>,
+  <span class="hljs-attr">"currency"</span>: <span class="hljs-string">"USD"</span>,
+  <span class="hljs-attr">"stock"</span>: <span class="hljs-number">150</span>,
+  <span class="hljs-attr">"category"</span>: <span class="hljs-string">"Widgets"</span>,
+  <span class="hljs-attr">"lastUpdated"</span>: <span class="hljs-string">"2026-01-07T12:00:00Z"</span>
+}
+</div></code></pre>
+<h4 id="post-apiproducts">POST /api/products</h4>
+<pre class="hljs"><code><div>Request:
+{
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"New Widget"</span>,
+  <span class="hljs-attr">"sku"</span>: <span class="hljs-string">"SKU-67890"</span>,
+  <span class="hljs-attr">"price"</span>: <span class="hljs-number">39.99</span>,
+  <span class="hljs-attr">"currency"</span>: <span class="hljs-string">"USD"</span>,
+  <span class="hljs-attr">"category"</span>: <span class="hljs-string">"Widgets"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"A brand new widget"</span>
+}
+
+Response (<span class="hljs-number">201</span> Created):
+{
+  <span class="hljs-attr">"productId"</span>: <span class="hljs-string">"PROD-002"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"Created"</span>
+}
+</div></code></pre>
+<hr>
+<h2 id="16-testing-strategy">16. Testing Strategy</h2>
+<h3 id="161-test-pyramid">16.1 Test Pyramid</h3>
+<pre><code class="language-mermaid"><div class="mermaid">graph TB
+    E2E[End-to-End Tests<br/>5%]
+    INT[Integration Tests<br/>25%]
+    UNIT[Unit Tests<br/>70%]
+    
+    E2E --> INT
+    INT --> UNIT
+    
+    style UNIT fill:#a8e6cf
+    style INT fill:#ffd93d
+    style E2E fill:#ff6b6b
+</div></code></pre>
+<h3 id="162-test-coverage">16.2 Test Coverage</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Type</th>
+<th>Coverage</th>
+<th>Tools</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unit Tests</strong></td>
+<td>Logic, transformations</td>
+<td>70%+</td>
+<td>xUnit, NUnit, Moq</td>
+</tr>
+<tr>
+<td><strong>Integration Tests</strong></td>
+<td>API contracts, DB</td>
+<td>25%</td>
+<td>WebApplicationFactory, Testcontainers</td>
+</tr>
+<tr>
+<td><strong>E2E Tests</strong></td>
+<td>Full flow</td>
+<td>5%</td>
+<td>Playwright, Postman</td>
+</tr>
+<tr>
+<td><strong>Load Tests</strong></td>
+<td>Performance</td>
+<td>Key scenarios</td>
+<td>Azure Load Testing, k6</td>
+</tr>
+</tbody>
+</table>
+<h3 id="163-key-test-scenarios">16.3 Key Test Scenarios</h3>
+<ol>
+<li>
+<p><strong>Order Flow</strong></p>
+<ul>
+<li>Ecom order → Order API → Merret</li>
+<li>Farfetch poller → Order API → Merret</li>
+<li>Farfetch cancellation flow</li>
+</ul>
+</li>
+<li>
+<p><strong>Transaction Flow</strong></p>
+<ul>
+<li>SFTP file → Transform → Transaction API → Merret + Cosmos</li>
+<li>Hospitality poller → Transaction API → Merret + Cosmos</li>
+</ul>
+</li>
+<li>
+<p><strong>Price Flow</strong></p>
+<ul>
+<li>Price worker → Service Bus → Enactor/Ecom</li>
+<li>Error handling and retry</li>
+</ul>
+</li>
+<li>
+<p><strong>Resilience</strong></p>
+<ul>
+<li>Circuit breaker activation</li>
+<li>Service Bus retry and DLQ</li>
+<li>API timeout handling</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="17-future-enhancements">17. Future Enhancements</h2>
+<h3 id="171-planned-improvements">17.1 Planned Improvements</h3>
+<table>
+<thead>
+<tr>
+<th>Enhancement</th>
+<th>Priority</th>
+<th>Timeline</th>
+<th>Benefit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Real-time Events</strong></td>
+<td>Medium</td>
+<td>Q2 2026</td>
+<td>Replace polling with webhooks</td>
+</tr>
+<tr>
+<td><strong>GraphQL API</strong></td>
+<td>Low</td>
+<td>Q3 2026</td>
+<td>Flexible queries for clients</td>
+</tr>
+<tr>
+<td><strong>Machine Learning</strong></td>
+<td>Low</td>
+<td>Q4 2026</td>
+<td>Demand forecasting, anomaly detection</td>
+</tr>
+<tr>
+<td><strong>Multi-region</strong></td>
+<td>Medium</td>
+<td>Q2 2026</td>
+<td>High availability</td>
+</tr>
+<tr>
+<td><strong>API Versioning</strong></td>
+<td>High</td>
+<td>Q1 2026</td>
+<td>Backwards compatibility</td>
+</tr>
+</tbody>
+</table>
+<h3 id="172-potential-optimizations">17.2 Potential Optimizations</h3>
+<ol>
+<li>
+<p><strong>Replace Polling with Webhooks</strong></p>
+<ul>
+<li>Farfetch → Push orders via webhook</li>
+<li>Hospitality → Push transactions via webhook</li>
+<li>Reduces latency, more real-time</li>
+</ul>
+</li>
+<li>
+<p><strong>Batch Processing</strong></p>
+<ul>
+<li>Process multiple transactions in single API call</li>
+<li>Improves throughput</li>
+</ul>
+</li>
+<li>
+<p><strong>Caching Layer</strong></p>
+<ul>
+<li>Add Redis for frequently accessed products/prices</li>
+<li>Reduce Merret API calls</li>
+</ul>
+</li>
+<li>
+<p><strong>Event Sourcing</strong></p>
+<ul>
+<li>Store all state changes as events</li>
+<li>Better audit trail and replay capability</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="18-glossary">18. Glossary</h2>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Merret</strong></td>
+<td>Third-party core inventory system</td>
+</tr>
+<tr>
+<td><strong>Ecom</strong></td>
+<td>E-commerce system (direct API integration)</td>
+</tr>
+<tr>
+<td><strong>Farfetch</strong></td>
+<td>Fashion marketplace (API polling + SFTP)</td>
+</tr>
+<tr>
+<td><strong>Enactor</strong></td>
+<td>Retail management system (SFTP + price destination)</td>
+</tr>
+<tr>
+<td><strong>Hospitality</strong></td>
+<td>Hospitality management system (API polling)</td>
+</tr>
+<tr>
+<td><strong>PIM</strong></td>
+<td>Product Information Management system (product enhancement destination)</td>
+</tr>
+<tr>
+<td><strong>SFTP</strong></td>
+<td>Secure File Transfer Protocol</td>
+</tr>
+<tr>
+<td><strong>ADF</strong></td>
+<td>Azure Data Factory</td>
+</tr>
+<tr>
+<td><strong>APIM</strong></td>
+<td>Azure API Management</td>
+</tr>
+<tr>
+<td><strong>DLQ</strong></td>
+<td>Dead Letter Queue</td>
+</tr>
+<tr>
+<td><strong>RTO</strong></td>
+<td>Recovery Time Objective</td>
+</tr>
+<tr>
+<td><strong>RPO</strong></td>
+<td>Recovery Point Objective</td>
+</tr>
+<tr>
+<td><strong>RU/s</strong></td>
+<td>Request Units per second (Cosmos DB)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="appendix-a-configuration-templates">Appendix A: Configuration Templates</h2>
+<h3 id="a1-appsettingsjson-order-api">A.1 appsettings.json (Order API)</h3>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"Logging"</span>: {
+    <span class="hljs-attr">"LogLevel"</span>: {
+      <span class="hljs-attr">"Default"</span>: <span class="hljs-string">"Information"</span>,
+      <span class="hljs-attr">"Microsoft.AspNetCore"</span>: <span class="hljs-string">"Warning"</span>
+    }
+  },
+  <span class="hljs-attr">"Merret"</span>: {
+    <span class="hljs-attr">"BaseUrl"</span>: <span class="hljs-string">"https://merret-api.example.com"</span>,
+    <span class="hljs-attr">"ApiKey"</span>: <span class="hljs-string">"stored-in-keyvault"</span>,
+    <span class="hljs-attr">"Timeout"</span>: <span class="hljs-number">30</span>
+  },
+  <span class="hljs-attr">"ApplicationInsights"</span>: {
+    <span class="hljs-attr">"ConnectionString"</span>: <span class="hljs-string">"stored-in-keyvault"</span>
+  },
+  <span class="hljs-attr">"KeyVault"</span>: {
+    <span class="hljs-attr">"VaultUri"</span>: <span class="hljs-string">"https://your-keyvault.vault.azure.net/"</span>
+  }
+}
+</div></code></pre>
+<h3 id="a2-localsettingsjson-azure-function">A.2 local.settings.json (Azure Function)</h3>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"IsEncrypted"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"Values"</span>: {
+    <span class="hljs-attr">"AzureWebJobsStorage"</span>: <span class="hljs-string">"UseDevelopmentStorage=true"</span>,
+    <span class="hljs-attr">"FUNCTIONS_WORKER_RUNTIME"</span>: <span class="hljs-string">"dotnet-isolated"</span>,
+    <span class="hljs-attr">"ServiceBusConnection"</span>: <span class="hljs-string">"Endpoint=sb://..."</span>,
+    <span class="hljs-attr">"BlobConnection"</span>: <span class="hljs-string">"DefaultEndpointsProtocol=https;..."</span>,
+    <span class="hljs-attr">"TransactionAPI__BaseUrl"</span>: <span class="hljs-string">"https://transaction-api.azure.io"</span>,
+    <span class="hljs-attr">"TransactionAPI__ApiKey"</span>: <span class="hljs-string">"your-api-key"</span>,
+    <span class="hljs-attr">"APPINSIGHTS_INSTRUMENTATIONKEY"</span>: <span class="hljs-string">"your-key"</span>
+  }
+}
+</div></code></pre>
+<hr>
+<h2 id="appendix-b-useful-commands">Appendix B: Useful Commands</h2>
+<h3 id="b1-azure-cli-commands">B.1 Azure CLI Commands</h3>
+<pre class="hljs"><code><div><span class="hljs-comment"># Create Resource Group</span>
+az group create --name rg-integration-hub --location eastus
+
+<span class="hljs-comment"># Create Service Bus</span>
+az servicebus namespace create --name sb-integration-hub --resource-group rg-integration-hub
+
+<span class="hljs-comment"># Create Cosmos DB</span>
+az cosmosdb create --name cosmos-integration-hub --resource-group rg-integration-hub
+
+<span class="hljs-comment"># Create Key Vault</span>
+az keyvault create --name kv-integration-hub --resource-group rg-integration-hub
+
+<span class="hljs-comment"># Create Container App Environment</span>
+az containerapp env create --name env-integration-hub --resource-group rg-integration-hub --location eastus
+</div></code></pre>
+<h3 id="b2-monitoring-queries-kql">B.2 Monitoring Queries (KQL)</h3>
+<pre class="hljs"><code><div>// API Request Rate
+requests
+| where timestamp &gt; ago(1h)
+| summarize RequestCount = count() by bin(timestamp, 5m), name
+| render timechart
+
+// Error Rate
+requests
+| where timestamp &gt; ago(1h)
+| summarize TotalRequests = count(), FailedRequests = countif(success == false) by name
+| extend ErrorRate = FailedRequests * 100.0 / TotalRequests
+| project name, ErrorRate
+
+// Dependency Call Duration
+dependencies
+| where timestamp &gt; ago(1h)
+| summarize avg(duration), percentile(duration, 95) by target
+</div></code></pre>
+<hr>
+<h2 id="document-control">Document Control</h2>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Changes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0</td>
+<td>2026-01-07</td>
+<td>Architecture Team</td>
+<td>Initial version</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><strong>END OF DOCUMENT</strong></p>
+
+</body>
+</html>
