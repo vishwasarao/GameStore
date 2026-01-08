@@ -371,6 +371,27 @@ code {
 <hr>
 <h2 id="executive-summary">Executive Summary</h2>
 <p>This document outlines the architecture for an integration hub that connects multiple external systems (Ecom, Farfetch, Enactor, Hospitality, PIM) with the core Merret inventory system. The solution uses Azure services with a microservices architecture to handle:</p>
+<h3 id="migration-context">Migration Context</h3>
+<p><strong>Legacy Architecture (Pre-Migration)</strong>:</p>
+<ul>
+<li><strong>Order Fulfillment System (OFS)</strong>: Monolithic application with UI, API layer, and SQL Database - all processing in-house</li>
+<li><strong>Product Management System</strong>: Monolithic application with UI, API layer, and SQL Database - all processing in-house</li>
+<li><strong>Integration Pattern</strong>: Both systems directly interacted with Merret, using a separate cache database for Merret data</li>
+<li><strong>Deployment</strong>: On-premises infrastructure</li>
+<li><strong>Architecture</strong>: Tightly coupled, difficult to scale</li>
+</ul>
+<p><strong>Current Architecture (Post-Migration)</strong>:</p>
+<ul>
+<li><strong>Microservices-based</strong>: Decoupled services with clear boundaries</li>
+<li><strong>Event-driven</strong>: Asynchronous communication using Event Grid and Service Bus</li>
+<li><strong>Cloud-native</strong>: Leveraging Azure PaaS services (Container Apps, Functions, Cosmos DB)</li>
+<li><strong>Third-party Integration</strong>: Modern integration patterns with external systems via APIs and SFTP</li>
+<li><strong>Scalability</strong>: Independent scaling per service based on load</li>
+<li><strong>Resilience</strong>: Built-in retry mechanisms, dead-letter queues, and fault tolerance</li>
+</ul>
+<hr>
+<h2 id="current-system-capabilities">Current System Capabilities</h2>
+<p>The microservices architecture handles:</p>
 <ul>
 <li><strong>Orders</strong> from Ecom (push) and Farfetch (pull)</li>
 <li><strong>Transactions</strong> from Enactor (SFTP), Farfetch (SFTP), and Hospitality (pull)</li>
@@ -3249,6 +3270,409 @@ dependencies
 | summarize avg(duration), percentile(duration, 95) by target
 </div></code></pre>
 <hr>
+<h2 id="appendix-c-migration-journey---legacy-to-microservices">Appendix C: Migration Journey - Legacy to Microservices</h2>
+<h3 id="c1-legacy-architecture-overview">C.1 Legacy Architecture Overview</h3>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart TB
+    subgraph LEGACY["🏢 LEGACY MONOLITHIC SYSTEMS (On-Premises)"]
+        direction TB
+        
+        subgraph OFS["Order Fulfillment System (OFS)"]
+            direction TB
+            OFS_UI["UI Layer<br/><i>Monolithic Web App</i>"]
+            OFS_API["API Layer<br/><i>Tightly Coupled</i>"]
+            OFS_DB[("OFS SQL Database")]
+            OFS_PROC["Processing Engine<br/><i>In-house</i>"]
+            
+            OFS_UI --> OFS_API
+            OFS_API --> OFS_DB
+            OFS_API --> OFS_PROC
+        end
+        
+        subgraph PMS["Product Management System"]
+            direction TB
+            PMS_UI["UI Layer<br/><i>Monolithic Web App</i>"]
+            PMS_API["API Layer<br/><i>Tightly Coupled</i>"]
+            PMS_DB[("PMS SQL Database")]
+            PMS_PROC["Processing Engine<br/><i>In-house</i>"]
+            
+            PMS_UI --> PMS_API
+            PMS_API --> PMS_DB
+            PMS_API --> PMS_PROC
+        end
+    end
+    
+    CACHE_DB[("Merret Cache DB<br/><i>Separate Cache</i>")]
+    MERRET[("Merret Core System<br/><i>3rd Party Inventory</i>")]
+    
+    OFS_API <-->|"Direct Interaction"| CACHE_DB
+    PMS_API <-->|"Direct Interaction"| CACHE_DB
+    CACHE_DB <-->|"Sync"| MERRET
+    
+    style LEGACY fill:#ffebee,stroke:#c62828,stroke-width:3px
+    style OFS fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style PMS fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style CACHE_DB fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style MERRET fill:#ff6b6b,stroke:#333,stroke-width:4px
+</div></code></pre>
+<h4 id="legacy-system-challenges">Legacy System Challenges</h4>
+<p><strong>Order Fulfillment System (OFS)</strong>:</p>
+<ul>
+<li>❌ Monolithic architecture - difficult to scale specific components</li>
+<li>❌ Tight coupling between UI, API, and processing layers</li>
+<li>❌ In-house processing limited by server capacity</li>
+<li>❌ Merret cache database added complexity and sync issues</li>
+<li>❌ Single point of failure</li>
+<li>❌ Difficult to deploy updates without full system downtime</li>
+</ul>
+<p><strong>Product Management System</strong>:</p>
+<ul>
+<li>❌ Similar monolithic constraints</li>
+<li>❌ Redundant cache database management</li>
+<li>❌ Scaling required scaling entire application</li>
+<li>❌ Limited integration capabilities with third parties</li>
+<li>❌ Manual deployment processes</li>
+</ul>
+<p><strong>Integration Challenges</strong>:</p>
+<ul>
+<li>❌ Cache database became bottleneck</li>
+<li>❌ Cache synchronization issues led to data inconsistencies</li>
+<li>❌ No event-driven patterns - polling-based updates</li>
+<li>❌ No retry mechanisms or dead-letter queues</li>
+<li>❌ Limited observability and monitoring</li>
+</ul>
+<hr>
+<h3 id="c2-migration-to-microservices">C.2 Migration to Microservices</h3>
+<h4 id="key-architectural-changes">Key Architectural Changes</h4>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Legacy</th>
+<th>Current (Microservices)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Architecture</strong></td>
+<td>Monolithic</td>
+<td>Microservices with domain boundaries</td>
+</tr>
+<tr>
+<td><strong>Data Access</strong></td>
+<td>Cache DB → Merret</td>
+<td>Direct Merret DB queries + Cosmos DB for reporting</td>
+</tr>
+<tr>
+<td><strong>Deployment</strong></td>
+<td>On-premises servers</td>
+<td>Azure Container Apps + Functions (PaaS)</td>
+</tr>
+<tr>
+<td><strong>Scaling</strong></td>
+<td>Vertical (entire app)</td>
+<td>Horizontal (per service, auto-scale)</td>
+</tr>
+<tr>
+<td><strong>Integration</strong></td>
+<td>Direct DB calls</td>
+<td>Event-driven (Event Grid + Service Bus)</td>
+</tr>
+<tr>
+<td><strong>Processing</strong></td>
+<td>Synchronous, in-house</td>
+<td>Asynchronous, distributed</td>
+</tr>
+<tr>
+<td><strong>Resilience</strong></td>
+<td>Single point of failure</td>
+<td>Retry policies, DLQ, circuit breakers</td>
+</tr>
+<tr>
+<td><strong>Monitoring</strong></td>
+<td>Limited logs</td>
+<td>Application Insights, distributed tracing</td>
+</tr>
+<tr>
+<td><strong>Third Parties</strong></td>
+<td>Minimal</td>
+<td>Deep integration (Ecom, Farfetch, Enactor, PIM)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="migration-benefits-achieved">Migration Benefits Achieved</h4>
+<p>✅ <strong>Eliminated Cache DB</strong>: Direct queries to Merret with proper caching strategies<br>
+✅ <strong>Independent Scaling</strong>: Each service scales based on its load<br>
+✅ <strong>Event-Driven</strong>: Blob uploads trigger processing automatically (Event Grid → Service Bus → Functions)<br>
+✅ <strong>Fault Tolerance</strong>: Service Bus dead-letter queues prevent message loss<br>
+✅ <strong>Cloud-Native</strong>: Leveraging Azure PaaS reduces operational overhead<br>
+✅ <strong>Third-Party Integration</strong>: Seamless integration with external systems<br>
+✅ <strong>Observability</strong>: End-to-end tracing with Application Insights<br>
+✅ <strong>Batch Processing</strong>: Efficient handling of large data volumes</p>
+<hr>
+<h3 id="c3-file-processing-pattern-example-blob-%E2%86%92-service-bus-%E2%86%92-function">C.3 File Processing Pattern (Example: Blob → Service Bus → Function)</h3>
+<p>This pattern replaced the legacy polling-based approach:</p>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant SFTP as 3rd Party SFTP
+    participant ADF as Azure Data Factory
+    participant Blob as Blob Storage
+    participant EG as Event Grid
+    participant SB as Service Bus Queue
+    participant Func as Azure Function
+    participant DLQ as Dead Letter Queue
+    participant API as Transaction API
+    participant DB as Merret DB
+
+    SFTP->>ADF: 1. Files uploaded to SFTP
+    ADF->>Blob: 2. Copy files to Blob Storage
+    Blob->>EG: 3. Blob Created Event
+    
+    Note over EG: Event Grid System Topic<br/>Filter: *.csv files only
+    
+    EG->>SB: 4. Send to Service Bus Queue
+    
+    Note over SB: Service Bus provides:<br/>- Durability<br/>- Retry policies<br/>- Dead-letter queue
+    
+    SB->>Func: 5. Trigger Azure Function
+    
+    alt Success
+        Func->>Blob: 6a. Read file
+        Func->>Func: 6b. Transform data
+        Func->>API: 6c. POST to Transaction API
+        API->>DB: 6d. Write to Merret DB
+        Func-->>SB: 6e. Complete message
+    else Processing Failure
+        Func--xSB: 6f. Abandon message
+        SB->>Func: 6g. Retry (up to max attempts)
+    else Max Retries Exceeded
+        SB->>DLQ: 6h. Move to Dead Letter Queue
+        DLQ->>Func: 6i. DLQ Processor alerts Ops team
+    end
+    
+    Note over DLQ,Func: DLQ Function handles:<br/>- Alerts<br/>- Logging<br/>- Manual reprocessing
+</div></code></pre>
+<p><strong>Key Improvements over Legacy</strong>:</p>
+<ul>
+<li><strong>Event-Driven</strong>: No more polling, instant processing on file arrival</li>
+<li><strong>Fault Tolerance</strong>: Service Bus ensures no message loss</li>
+<li><strong>Retry Mechanism</strong>: Automatic retries with exponential backoff</li>
+<li><strong>Observability</strong>: Full tracing from blob upload to DB write</li>
+<li><strong>Scalability</strong>: Functions scale automatically based on queue depth</li>
+</ul>
+<hr>
+<h3 id="c4-recommended-azure-function-plan">C.4 Recommended Azure Function Plan</h3>
+<p>Based on the file processing workload:</p>
+<p><strong>✅ Recommended: Consumption Plan</strong> (for most scenarios)</p>
+<ul>
+<li><strong>Pricing</strong>: Pay per execution + execution time</li>
+<li><strong>Scaling</strong>: Automatic (0 to 200+ instances)</li>
+<li><strong>Timeout</strong>: 5 minutes default, up to 10 minutes configurable</li>
+<li><strong>Best for</strong>: Variable/unpredictable workloads, cost optimization</li>
+<li><strong>Cold starts</strong>: Yes (~1-3 seconds for .NET)</li>
+</ul>
+<p><strong>When to use Premium Plan</strong>:</p>
+<ul>
+<li>⚡ Need longer execution time (&gt;10 minutes)</li>
+<li>🔒 Require VNet integration for secure DB access</li>
+<li>🚀 Cannot tolerate cold starts (pre-warmed instances)</li>
+<li>📊 Sustained high throughput (predictable load)</li>
+</ul>
+<p><strong>Current Setup Recommendation</strong>:</p>
+<pre class="hljs"><code><div>Functions: Consumption Plan
+- Farfetch Order Poller
+- Hospitality TX Poller
+- TX Transformer (Service Bus trigger)
+- Price Batch Sender
+- Product Batch Sender
+- DLQ Processor
+
+Container Apps: Always-on
+- Order API (2-10 replicas)
+- Transaction API (1-5 replicas)
+- Product API (1-5 replicas)
+- Batch Workers (1-2 replicas)
+</div></code></pre>
+<hr>
+<h3 id="c5-event-grid-configuration-best-practices">C.5 Event Grid Configuration Best Practices</h3>
+<p><strong>System Topic Setup</strong> (for Blob Storage events):</p>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"properties"</span>: {
+    <span class="hljs-attr">"source"</span>: <span class="hljs-string">"/subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Storage/storageAccounts/{account}"</span>,
+    <span class="hljs-attr">"topicType"</span>: <span class="hljs-string">"Microsoft.Storage.StorageAccounts"</span>,
+    <span class="hljs-attr">"destination"</span>: {
+      <span class="hljs-attr">"endpointType"</span>: <span class="hljs-string">"ServiceBusQueue"</span>,
+      <span class="hljs-attr">"properties"</span>: {
+        <span class="hljs-attr">"resourceId"</span>: <span class="hljs-string">"/subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.ServiceBus/namespaces/{namespace}/queues/{queue}"</span>
+      }
+    },
+    <span class="hljs-attr">"filter"</span>: {
+      <span class="hljs-attr">"subjectBeginsWith"</span>: <span class="hljs-string">"/blobServices/default/containers/raw-files/"</span>,
+      <span class="hljs-attr">"subjectEndsWith"</span>: <span class="hljs-string">".csv"</span>,
+      <span class="hljs-attr">"includedEventTypes"</span>: [
+        <span class="hljs-string">"Microsoft.Storage.BlobCreated"</span>
+      ],
+      <span class="hljs-attr">"advancedFilters"</span>: [
+        {
+          <span class="hljs-attr">"operatorType"</span>: <span class="hljs-string">"StringEquals"</span>,
+          <span class="hljs-attr">"key"</span>: <span class="hljs-string">"data.api"</span>,
+          <span class="hljs-attr">"values"</span>: [<span class="hljs-string">"PutBlob"</span>, <span class="hljs-string">"FlushWithClose"</span>]
+        }
+      ]
+    },
+    <span class="hljs-attr">"retryPolicy"</span>: {
+      <span class="hljs-attr">"maxDeliveryAttempts"</span>: <span class="hljs-number">30</span>,
+      <span class="hljs-attr">"eventTimeToLiveInMinutes"</span>: <span class="hljs-number">1440</span>
+    }
+  }
+}
+</div></code></pre>
+<p><strong>Key Configuration Points</strong>:</p>
+<ul>
+<li>✅ <strong>Filter at Event Grid</strong>: Only send events for relevant files (*.csv, specific containers)</li>
+<li>✅ <strong>Advanced Filters</strong>: Exclude temporary files from ADF (filter by API type)</li>
+<li>✅ <strong>Retry Policy</strong>: 30 attempts over 24 hours before dropping</li>
+<li>✅ <strong>Dead-Letter Destination</strong>: Configure blob container for failed events</li>
+<li>✅ <strong>Managed Identity</strong>: Use managed identity for Service Bus authentication</li>
+</ul>
+<p><strong>Event Schema Example</strong>:</p>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"topic"</span>: <span class="hljs-string">"/subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Storage/storageAccounts/{account}"</span>,
+  <span class="hljs-attr">"subject"</span>: <span class="hljs-string">"/blobServices/default/containers/raw-files/blobs/transactions_2026-01-08.csv"</span>,
+  <span class="hljs-attr">"eventType"</span>: <span class="hljs-string">"Microsoft.Storage.BlobCreated"</span>,
+  <span class="hljs-attr">"eventTime"</span>: <span class="hljs-string">"2026-01-08T10:30:00.0000000Z"</span>,
+  <span class="hljs-attr">"data"</span>: {
+    <span class="hljs-attr">"api"</span>: <span class="hljs-string">"PutBlob"</span>,
+    <span class="hljs-attr">"clientRequestId"</span>: <span class="hljs-string">"..."</span>,
+    <span class="hljs-attr">"requestId"</span>: <span class="hljs-string">"..."</span>,
+    <span class="hljs-attr">"eTag"</span>: <span class="hljs-string">"..."</span>,
+    <span class="hljs-attr">"contentType"</span>: <span class="hljs-string">"text/csv"</span>,
+    <span class="hljs-attr">"contentLength"</span>: <span class="hljs-number">245678</span>,
+    <span class="hljs-attr">"blobType"</span>: <span class="hljs-string">"BlockBlob"</span>,
+    <span class="hljs-attr">"url"</span>: <span class="hljs-string">"https://{account}.blob.core.windows.net/raw-files/transactions_2026-01-08.csv"</span>
+  }
+}
+</div></code></pre>
+<hr>
+<h3 id="c6-service-bus-configuration-for-reliability">C.6 Service Bus Configuration for Reliability</h3>
+<p><strong>Queue Settings</strong> (transaction-queue):</p>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"maxDeliveryCount"</span>: <span class="hljs-number">10</span>,
+  <span class="hljs-attr">"lockDuration"</span>: <span class="hljs-string">"PT5M"</span>,
+  <span class="hljs-attr">"requiresDuplicateDetection"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"duplicateDetectionHistoryTimeWindow"</span>: <span class="hljs-string">"PT10M"</span>,
+  <span class="hljs-attr">"deadLetteringOnMessageExpiration"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"defaultMessageTimeToLive"</span>: <span class="hljs-string">"P1D"</span>,
+  <span class="hljs-attr">"maxSizeInMegabytes"</span>: <span class="hljs-number">1024</span>,
+  <span class="hljs-attr">"enablePartitioning"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"enableBatchedOperations"</span>: <span class="hljs-literal">true</span>
+}
+</div></code></pre>
+<p><strong>Why Service Bus over Direct Event Grid → Function</strong>:</p>
+<ul>
+<li>✅ <strong>Persistent Dead-Letter Queue</strong>: Failed messages preserved for investigation</li>
+<li>✅ <strong>Configurable Retry</strong>: Control over delivery attempts and backoff</li>
+<li>✅ <strong>Message Durability</strong>: Messages persisted to storage (not lost on failure)</li>
+<li>✅ <strong>At-Least-Once Delivery</strong>: Guaranteed processing</li>
+<li>✅ <strong>Poison Message Handling</strong>: Automatic DLQ after max retries</li>
+<li>✅ <strong>Message Ordering</strong>: FIFO with sessions (if needed)</li>
+<li>✅ <strong>Deferred Processing</strong>: Manual message management for complex scenarios</li>
+</ul>
+<p><strong>DLQ Processing Strategy</strong>:</p>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart TB
+    DLQ[Dead Letter Queue]
+    DLQFUNC[DLQ Processor Function<br/><i>Timer: Every 5 min</i>]
+    
+    subgraph Analysis
+        CHECK{Analyze Error}
+    end
+    
+    subgraph Actions
+        ALERT[Send Alert<br/><i>Teams/Email</i>]
+        LOG[Log to App Insights<br/><i>Full context</i>]
+        STORE[Store in Cosmos DB<br/><i>Failed messages table</i>]
+        REQUEUE[Requeue to main queue<br/><i>If transient error</i>]
+        MANUAL[Flag for manual review<br/><i>Create ticket</i>]
+    end
+    
+    DLQ --> DLQFUNC
+    DLQFUNC --> CHECK
+    
+    CHECK -->|Transient Error<br/>Network/Timeout| REQUEUE
+    CHECK -->|Data Quality Issue| MANUAL
+    CHECK -->|System Error| ALERT
+    
+    CHECK --> LOG
+    CHECK --> STORE
+    
+    style DLQ fill:#ff6b6b,stroke:#333,stroke-width:3px
+    style DLQFUNC fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style REQUEUE fill:#4caf50,stroke:#333,stroke-width:2px
+    style MANUAL fill:#ff9800,stroke:#333,stroke-width:2px
+    style ALERT fill:#f44336,stroke:#333,stroke-width:2px
+</div></code></pre>
+<hr>
+<h2 id="appendix-d-cost-optimization-strategies">Appendix D: Cost Optimization Strategies</h2>
+<h3 id="d1-azure-function-consumption-plan-costs">D.1 Azure Function Consumption Plan Costs</h3>
+<p><strong>Pricing Model</strong> (as of Jan 2026):</p>
+<ul>
+<li><strong>Execution Count</strong>: $0.20 per million executions</li>
+<li><strong>Execution Time</strong>: $0.000016 per GB-second</li>
+<li><strong>Free Grant</strong>: 1M executions + 400,000 GB-seconds per month</li>
+</ul>
+<p><strong>Example Cost Calculation</strong> (File Processing):</p>
+<pre class="hljs"><code><div>Scenario: 10,000 files/month, avg 2 seconds processing, 512MB memory
+
+Executions: 10,000 = $0.002
+GB-seconds: 10,000 × 2s × 0.5GB = 10,000 GB-s = $0.16
+Total: ~$0.17/month
+
+Compare to Premium Plan: ~$168/month (cheapest tier)
+Savings: ~$167.83/month (99% reduction)
+</div></code></pre>
+<h3 id="d2-service-bus-cost-optimization">D.2 Service Bus Cost Optimization</h3>
+<p><strong>Standard Tier vs Premium Tier</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Standard</th>
+<th>Premium</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Base Cost</strong></td>
+<td>$0.05 per million ops</td>
+<td>$677/month (1 MU)</td>
+</tr>
+<tr>
+<td><strong>Message Size</strong></td>
+<td>256 KB</td>
+<td>1 MB</td>
+</tr>
+<tr>
+<td><strong>VNet</strong></td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><strong>Throughput</strong></td>
+<td>Variable</td>
+<td>Dedicated (1000 msg/s)</td>
+</tr>
+<tr>
+<td><strong>Best For</strong></td>
+<td>Variable loads</td>
+<td>Predictable high loads</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendation</strong>: Start with <strong>Standard Tier</strong> unless:</p>
+<ul>
+<li>Need VNet integration</li>
+<li>Message sizes &gt;256KB consistently</li>
+<li>Predictable sustained high throughput</li>
+</ul>
+<hr>
 <h2 id="document-control">Document Control</h2>
 <table>
 <thead>
@@ -3265,6 +3689,12 @@ dependencies
 <td>2026-01-07</td>
 <td>Architecture Team</td>
 <td>Initial version</td>
+</tr>
+<tr>
+<td>1.1</td>
+<td>2026-01-08</td>
+<td>Architecture Team</td>
+<td>Added legacy migration details, Event Grid/Service Bus config, DLQ strategies</td>
 </tr>
 </tbody>
 </table>
